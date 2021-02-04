@@ -224,7 +224,7 @@ booth.results.2019 <- booth.results.2019 %>%
 
 \vspace{6mm}
 
-Your final data frame should look like this:
+## Finilizing data cleaning
 
 
 ```{r check data}
@@ -247,6 +247,9 @@ describe(booth.results.2019[variable])
 
 
 ```
+
+## Regression model
+
 ```{r fit the first linear model to county, warning=FALSE, message=FALSE, cache=FALSE}
 library(tidyverse)
 booth.results.2019.Coalition <- booth.results.2019 %>% filter(party == "Coalition")
