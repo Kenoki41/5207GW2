@@ -4,7 +4,7 @@ author: 'Group 2'
 date: "2021/2/3"
 output: html_document
 ---
-Our team select median_age_persons, median_rent_weekly, median_tot_prsnl_inc_weekly as independent variables and the propbabilty of each party as the dependent variable.We will examine the relationship between the independent variable and dependent variable.weekly room rent and weekly personal income may affect the election probability results of different parties. 
+Our team select median_age_persons, median_rent_weekly, median_tot_prsnl_inc_weekly as independent variables and the propbabilty of each party as the dependent variable.We will examine the relationship between the independent variable and dependent variable.It shows the age distribution, personal income and housing costs, respectively of voters. Age,weekly room rent and weekly personal income may affect the election probability results of different parties. 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, messages = FALSE)
@@ -250,7 +250,10 @@ ggplot(data = booth.results.2019) +
 ```
 
 ### Analysis of part i
-  According to the data and graph given above, ```
+  According to the data and graph given above, the median age of the voters has a mean of 39.61 and a standard deviation of 6.07,min is 18.00 and max is 67.00. the distribution shows a right skew (skewness +0.48) and is slightly flatter than the normal distribution (kurtosis 0.33)
+The mean of voters weekly rent is 325.39 and a standard deviation of 120.13,min is 0 and max is 830. the distribution shows a right skew (skewness +0.53) and is slightly steeper than the normal distribution (kurtosis 1.18)
+The mean of voters weekly personal income is 671.82 and a standard deviation of 178.50,min is 185 and max is 2772. the distribution shows a right skew (skewness +1.66) and is steeper than the normal distribution (kurtosis 5.82)
+
 
 
 ## Regression model
