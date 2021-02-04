@@ -4,6 +4,7 @@ author: 'Group 2'
 date: "2021/2/3"
 output: html_document
 ---
+Our team select median_age_persons, median_rent_weekly, median_tot_prsnl_inc_weekly as independent variables and the propbabilty of each party as the dependent variable.We will examine the relationship between the independent variable and dependent variable.It shows the age distribution, personal income and housing costs, respectively of voters. Age,weekly room rent and weekly personal income may affect the election probability results of different parties. 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, messages = FALSE)
@@ -11,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, messages = FALSE)
 library (tidyverse)
 
 ```
+
 
 
 ## Data Preparetion
@@ -248,7 +250,10 @@ ggplot(data = booth.results.2019) +
 ```
 
 ### Analysis of part i
-  According to the data and graph given above, ```
+  According to the data and graph given above, the median age of the voters has a mean of 39.61 and a standard deviation of 6.07,min is 18.00 and max is 67.00. the distribution shows a right skew (skewness +0.48) and is slightly flatter than the normal distribution (kurtosis 0.33)
+The mean of voters weekly rent is 325.39 and a standard deviation of 120.13,min is 0 and max is 830. the distribution shows a right skew (skewness +0.53) and is slightly steeper than the normal distribution (kurtosis 1.18)
+The mean of voters weekly personal income is 671.82 and a standard deviation of 178.50,min is 185 and max is 2772. the distribution shows a right skew (skewness +1.66) and is steeper than the normal distribution (kurtosis 5.82)
+
 
 
 ## Regression model
@@ -333,7 +338,7 @@ au.shape.1 <- st_read("Data/Australia/Au shapefiles/POA_2016_AUST.shp")
 # Data for Coalition
 Coalition.independent.table <- booth.results.2019 %>%
   filter(party == "Coalition") %>%
-  dplyr::select(POA_CODE16, party, Median_age_persons, Median_rent_weekly, Average_num_psns_per_bedroom)
+  dplyr::select(POA_CODE16, party, Median_age_persons, Median_rent_weekly, Median_tot_prsnl_inc_weekly)
 
 ## Remove repeated data
 Coalition.independent.table <- dplyr::distinct(Coalition.independent.table)
@@ -348,7 +353,7 @@ Coalition.independent.table <- merge(au.shape.1,
 # Data for Greens
 Greens.independent.table <- booth.results.2019 %>%
   filter(party == "Greens") %>%
-  dplyr::select(POA_CODE16, party, Median_age_persons, Median_rent_weekly, Average_num_psns_per_bedroom)
+  dplyr::select(POA_CODE16, party, Median_age_persons, Median_rent_weekly, Median_tot_prsnl_inc_weekly)
 
 ## Remove repeated data
 Greens.independent.table <- dplyr::distinct(Greens.independent.table)
@@ -363,7 +368,7 @@ Greens.independent.table <- merge(au.shape.1,
 # Data for One Nation
 OneNation.independent.table <- booth.results.2019 %>%
   filter(party == "One Nation") %>%
-  dplyr::select(POA_CODE16, party, Median_age_persons, Median_rent_weekly, Average_num_psns_per_bedroom)
+  dplyr::select(POA_CODE16, party, Median_age_persons, Median_rent_weekly, Median_tot_prsnl_inc_weekly)
 
 ## Remove repeated data
 OneNation.independent.table <- dplyr::distinct(OneNation.independent.table)
@@ -378,7 +383,7 @@ OneNation.independent.table <- merge(au.shape.1,
 # Data for Labor
 Labor.independent.table <- booth.results.2019 %>%
   filter(party == "Labor") %>%
-  dplyr::select(POA_CODE16, party, Median_age_persons, Median_rent_weekly, Average_num_psns_per_bedroom)
+  dplyr::select(POA_CODE16, party, Median_age_persons, Median_rent_weekly, Median_tot_prsnl_inc_weekly)
 
 ## Remove repeated data
 Labor.independent.table <- dplyr::distinct(Labor.independent.table)
@@ -393,7 +398,7 @@ Labor.independent.table <- merge(au.shape.1,
 # Data for Other
 Other.independent.table <- booth.results.2019 %>%
   filter(party == "Other") %>%
-  dplyr::select(POA_CODE16, party, Median_age_persons, Median_rent_weekly, Average_num_psns_per_bedroom)
+  dplyr::select(POA_CODE16, party, Median_age_persons, Median_rent_weekly, Median_tot_prsnl_inc_weekly)
 
 ## Remove repeated data
 Other.independent.table <- dplyr::distinct(Other.independent.table)
