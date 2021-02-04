@@ -1,0 +1,206 @@
+---
+title: "group_work2"
+author: "Fan Song"
+date: "2/3/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#load data
+```{r}
+dl.booth.data <- function(x){
+      read.csv(paste0('https://results.aec.gov.au/24310/Website/Downloads/HouseStateFirstPrefsByPollingPlaceDownload-24310-', x, '.csv'),
+      skip = 1)
+  
+
+}
+```
+
+```{r}
+dl.booth.data('NSW') %>%
+head()
+
+
+```
+```{r}
+booth.results.2019 <- bind_rows(dl.booth.data('NSW'),
+dl.booth.data('VIC'),
+dl.booth.data('QLD'),
+dl.booth.data('WA'),
+dl.booth.data('SA'),
+dl.booth.data('TAS'),
+dl.booth.data('ACT'),
+dl.booth.data('NT'))
+```
+
+```{r}
+table(booth.results.2019$PartyNm)
+```
+
+#cleaning data
+```{r}
+
+
+booth.results.2019 <- booth.results.2019 %>%
+mutate(party = dplyr::recode(PartyNm,
+                        "Liberal" = 'Coalition',
+                        "The Greens" = 'Greens',
+                        "Labor" = 'Labor',
+                        "Informal" = 'Informal',
+                        "Pauline Hanson's One Nation" = 'One Nation',
+                        "The Nationals" = 'Coalition',
+                        "The Greens (VIC)" = 'Greens',
+                        "Australian Labor Party" = 'Labor',
+                        "Liberal National Party of Queensland" = 'Coalition',
+                        "The Greens (WA)" = 'Greens',
+                        "National Party" = 'Coalition',
+                        "Australian Labor Party (Northern Territory) Branch" =
+                        'Labor',
+                        "Country Liberals (NT)" = 'Coalition',
+                        .default = 'Other')) %>%
+                        filter(party != 'Informal')
+```
+
+
+#cleaning data
+```{r}
+
+booth.results.2019 <- booth.results.2019 %>%
+    group_by(PollingPlaceID, party) %>%
+    dplyr::summarise(n = sum(OrdinaryVotes)) %>%
+    spread(party, n) %>%
+    mutate_at(vars(-PollingPlaceID),
+    .funs = list(missing = ~ ifelse(is.na(.), 'Yes', 'No'))) %>%
+    mutate_at(vars(-PollingPlaceID), ~ifelse(is.na(.), 0, .))
+```
+
+#cleaning data
+```{r}
+booth.results.2019 <- booth.results.2019 %>%
+    gather(party, n,
+    Coalition, Greens, Labor, `One Nation`, Other) %>%
+    dplyr::select(PollingPlaceID, party, n) %>%
+    merge(booth.results.2019 %>%
+    gather(party, missing,
+    Coalition_missing, Greens_missing,
+    Labor_missing, `One Nation_missing`,
+    Other_missing) %>%
+    mutate(party = gsub('_missing', '', party)) %>%
+    dplyr::select(PollingPlaceID, party, missing)) %>%
+    group_by(PollingPlaceID) %>%
+    mutate(prop = n / sum(n))
+```
+
+#cleaning data
+```{r}
+booth.results.2019 <- booth.results.2019 %>%
+  merge(read.csv('https://results.aec.gov.au/24310/Website/Downloads/GeneralPollingPlacesDownload-24310.csv', skip = 1) %>%
+        dplyr::rename(state = State,
+        division = DivisionNm,
+        PollingPlace = PollingPlaceNm,
+        POA_CODE16 = PremisesPostCode) %>%
+        dplyr::select(state, division, PollingPlaceID, PollingPlace,
+        POA_CODE16, Latitude, Longitude)) %>%
+        filter(!is.na(Latitude)) %>%
+        filter(!PollingPlace %in% grep('PREPOLL',
+        PollingPlace,
+        value = T))
+```
+
+#cleaning data
+```{r}
+booth.results.2019 <- booth.results.2019 %>%
+left_join(read.csv('Data/ABS datapacks/2016 Census GCP Postal Areas for AUST/2016Census_G02_AUS_POA.csv') %>%
+mutate(POA_CODE16 = as.numeric(gsub('POA', '', POA_CODE_2016))) %>%
+dplyr::select(-POA_CODE_2016))
+```
+```{r}
+
+```
+
+#load shape file
+```{r}
+au.shape.1 <- st_read("Data/geospatial data/Australia/Au shapefiles/POA_2016_AUST.shp")
+head(au.shape.1)
+```
+
+#merge booth.results.2019 with shape data
+
+```{r}
+au.shape.2 <- merge(au.shape.1,
+  booth.results.2019 %>%
+    dplyr::select(PollingPlaceID, party, n, missing, prop, state, division, PollingPlaceID, POA_CODE16, Latitude, Longitude, Median_age_persons, Median_tot_prsnl_inc_weekly, Median_rent_weekly),
+  by="POA_CODE16", duplicateGeoms = TRUE)
+```
+
+
+
+
+```{r}
+au.shape.3<-au.shape.2 %>% filter(as.numeric(Median_rent_weekly) != 0)
+```
+
+
+
+```{r}
+booth.results.2019.Coalition <-booth.results.2019 %>%filter(party == "Coalition")
+
+#Coalition.pro <- booth.results.2019.Coalition %>% 
+#    drop_na(prop) %>%
+#  mutate(prop2 = cut(prop, breaks=c(quantile(prop, 
+#                                        probs = seq(0, 1, by = 0.20))),
+#      labels=c("0-20","20-40","40-60","60-80","80-100"), include.lowest=TRUE))
+
+
+#key <- 'pk.eyJ1IjoiZmFuc29uZzk5NiIsImEiOiJja2tvemQ1aWcxa3o3MnBvY3JjeXdmaW1yIn0.1TaYyPHIjaCvbeL6bfJFug'
+#mapdeck(token = key, style = mapdeck_style("light")) %>%
+#  add_polygon(
+#    data = booth.results.2019.Coalition, 
+ #   layer = "polygon_layer", 
+ #   fill_colour = "prop", 
+ #   palette = "diverge_hsv", 
+#    fill_opacity = .9, 
+#    legend = TRUE)  
+
+
+
+ist(list(c(-82.7351079889416, -82.313996, -82.310314, -82.246337, -82.334234, -82.247747, -82.267184, -82.326947, -82.530567, -82.5950257926073, -82.642797, -82.715373, -82.7351079889416, 34.2126148122429, 34.484002, 34.466656, 34.409676, 34.34263, 34.219619, 34.10836, 34.06412, 34.071925, 34.0135178092096, 34.081312, 34.148165, 34.2126148122429)))
+
+```
+
+```{r}
+booth.results.2019.Greens <- booth.results.2019 %>%filter(party == "Greens")
+booth.results.2019.Labor <- booth.results.2019 %>%filter(party == "Labor")
+booth.results.2019.OneNation <- booth.results.2019 %>%filter(party == "One Nation")
+booth.results.2019.Other <- booth.results.2019 %>%filter(party == "Other")
+```
+
+
+
+
+```{r}
+booth.results.2019 %>% 
+  arrange(party)
+```
+```{r}
+names(booth.results.2019)
+```
+```{r}
+a <- st_read("Data/geospatial data/Australia/Au shapefiles/POA_2016_AUST.dbf")
+head(au.shape.1)
+```
+
+```{r}
+mapdeck(token = key,
+        style = mapdeck_style('light'),
+        pitch = 35) %>% # 底图
+  add_animated_arc(data = booth.results.2019.Coalition, #  数据框
+                   origin = c('start_lon','start_lat'), #  开始坐标
+                   destination = c('end_lon','end_lat')) #  终点坐标
+```
+
+
+
