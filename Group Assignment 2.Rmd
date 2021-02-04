@@ -294,11 +294,11 @@ describe(booth.results.2019[variable])
 ```
 
 ```{r}
+library(sf)
+
 au.shape.1 <- st_read("Data/Australia/Au shapefiles/POA_2016_AUST.shp")
 
 head(au.shape.1)
-
-library(sf)
 
 au.shape.2 <- merge(au.shape.1,
   booth.results.2019 %>%
@@ -310,7 +310,8 @@ head(au.shape.2)
 ```{r}
 library(mapdeck)
 
-booth.results.2019.Coalition <-booth.results.2019 %>%filter(party == "Coalition")
+booth.results.2019.Coalition <- au.shape.2 %>%
+  filter(party == "Coalition")
 
 key <- 'pk.eyJ1Ijoia2Vub2tpIiwiYSI6ImNra296Ymp4NDAyY2wzMW1vbzQwazJkazAifQ.H130BX9RduEUtpGndRxefw'
 
@@ -322,6 +323,7 @@ mapdeck(token = key, style = mapdeck_style("light")) %>%
   palette = "diverge_hsv", 
    fill_opacity = .9, 
    legend = TRUE)
+
 ```
 
 
