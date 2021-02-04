@@ -309,28 +309,41 @@ head(au.shape.1)
 
 au.shape.2 <- merge(au.shape.1,
   booth.results.2019 %>%
-    dplyr::select(PollingPlaceID, party, n, missing, prop, state, division, PollingPlaceID, POA_CODE16, Latitude, Longitude, Median_age_persons, Median_tot_prsnl_inc_weekly, Median_rent_weekly, Average_household_size),
+    dplyr::select( party, POA_CODE16, Median_age_persons),
   by="POA_CODE16", duplicateGeoms = TRUE)
+
+names(au.shape.2)
 
 head(au.shape.2)
 ```
 ```{r}
-library(mapdeck)
 
-booth.results.2019.Coalition <- au.shape.2 %>%
+booth.results.2019.Coalition <-au.shape.2 %>% 
   filter(party == "Coalition")
 
+booth.results.2019.Coalition <- dplyr::distinct(booth.results.2019.Coalition)
+
+booth.results.2019.Coalition
+```
+
+```{r}
+booth.results.2019.Coalition
+```
+
+```{r plot}
+library(mapdeck)
 key <- 'pk.eyJ1Ijoia2Vub2tpIiwiYSI6ImNra296Ymp4NDAyY2wzMW1vbzQwazJkazAifQ.H130BX9RduEUtpGndRxefw'
 
 mapdeck(token = key, style = mapdeck_style("light")) %>%
  add_polygon(
     data = booth.results.2019.Coalition, 
    layer = "polygon_layer", 
-    fill_colour = "Average_household_size", 
+    fill_colour = "Median_age_persons", 
   palette = "diverge_hsv", 
    fill_opacity = .9, 
    legend = TRUE)
 ```
+
 
 
 
