@@ -361,6 +361,23 @@ display(booth.model.other)
 
 
 ```
+
+## Analysis of the glm
+
+The fitting poisson model examines the coffecient of the independent(the median age, weekly rent, weekly personal income of voters)and dependent variable(probability of election).In the Poisson regression, the dependent variable is modeled in the logarithmic form of the conditional mean ln(λ). The poisson model is (prop ~ z.age + z.rent + z.income).
+
+  For the coalition party, the intercept is -0.88, the regression parameter for z.age is 0.13, indicating that holding the other predictor variables constant, a one-year increase in age will result in a corresponding increase in the log mean of the number of election probability by 0.13.The the regression parameter for z.rent is -0.04, a fee of rent increase will result in a corresponding decrease in the log mean of the number of election probability by 0.04.The regression parameter for z.income is 0.07,  increase in personal income will result in a corresponding increase in the log mean of the number of election probability by 0.07.
+
+  For the greens party, the intercept is -2.32, the regression parameter for z.age is -0.06, indicating that holding the other predictor variables constant, a one-year increase in age will result in a corresponding decrease in the log mean of the number of election probability by 0.06.The the regression parameter for z.rent is 0.18, a fee of rent increase will result in a corresponding increase in the log mean of the number of election probability by 0.18.The regression parameter for z.income is 0.10,  increase in personal income will result in a corresponding increase in the log mean of the number of election probability by 0.10.
+
+  For the Labor party, the intercept is -1.16, the regression parameter for z.age is -0.17, indicating that holding the other predictor variables constant, a one-year increase in age will result in a corresponding decrease in the log mean of the number of election probability by 0.17.The regression parameter for z.rent is 0.08, a fee of rent increase will result in a corresponding increase in the log mean of the number of election probability by 0.08.The regression parameter for z.income is -0.12, increase in personal income will result in a corresponding decrease in the log mean of the number of election probability by 0.12.
+  
+  For the OneNation party, the intercept is -3.51, the regression parameter for z.age is -0.19, indicating that holding the other predictor variables constant, a one-year increase in age will result in a corresponding decrease in the log mean of the number of election probability by 0.19.The regression parameter for z.rent is -0.50, a fee of rent increase will result in a corresponding decrease in the log mean of the number of election probability by 0.50.The regression parameter for z.income is -0.05,  increase in personal income will result in a corresponding decrease in the log mean of the number of election probability by 0.05.
+  
+  For the other party, the intercept is -2.08, the regression parameter for z.age is 0.09, indicating that holding the other predictor variables constant, a one-year increase in age will result in a corresponding increase in the log mean of the number of election probability by 0.09.The the regression parameter for z.rent is -0.16, a fee of rent increase will result in a corresponding decrease in the log mean of the number of election probability by 0.16.The regression parameter for z.income is 0.02, increase in personal income will result in a corresponding increase in the log mean of the number of election probability by 0.02.
+  
+  
+  
 ## Data Cleaning and Opearting
   The purpose of the code in this section is to select the appropriate data (zip code and three independent variables) and merge.
   
@@ -680,4 +697,4 @@ mapdeck(token = key, style = mapdeck_style("light")) %>%
 
 
 ### Key findings
-  According to our research:
+  
