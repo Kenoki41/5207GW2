@@ -236,12 +236,6 @@ describe(booth.results.2019[variable])
 
 ggplot(data = booth.results.2019) +
   geom_histogram(mapping = aes(x = Median_age_persons), binwidth = 2)
-<<<<<<< HEAD
-ggplot(data = booth.results.2019) +
-  geom_histogram(mapping = aes(x = Median_rent_weekly), binwidth = 30)
-ggplot(data = booth.results.2019) +
-  geom_histogram(mapping = aes(x = Median_tot_prsnl_inc_weekly), binwidth = 50)
-=======
 
 ggplot(data = booth.results.2019) +
   geom_histogram(mapping = aes(x = Median_rent_weekly), binwidth = 30)
@@ -249,7 +243,6 @@ ggplot(data = booth.results.2019) +
 ggplot(data = booth.results.2019) +
   geom_histogram(mapping = aes(x = Median_tot_prsnl_inc_weekly), binwidth = 50)
 
->>>>>>> 1c1b4f46a07ae663886684fe5d26aa943e052585
 
 
 ```
