@@ -15,6 +15,7 @@ library (tidyverse)
 
 ## Data Preparetion
 
+  Data cleaning strategy we used in the lab9
 
 ### Downloading and analysing spatial data for elections
 
@@ -59,7 +60,6 @@ booth.results.2019 <- bind_rows(dl.booth.data('NSW'),
                                 dl.booth.data('TAS'),
                                 dl.booth.data('ACT'),
                                 dl.booth.data('NT'))
-
 
 ```
 
@@ -219,12 +219,6 @@ booth.results.2019 <- booth.results.2019 %>%
   mutate(POA_CODE16 = as.numeric(gsub('POA', '', POA_CODE_2016))) %>% 
   dplyr::select(-POA_CODE_2016))
 
-booth.results.2019 <- booth.results.2019 %>% 
-  mutate(z.age = scale(Median_age_persons)) %>% 
-  mutate(z.rent = scale(Median_rent_weekly)) %>% 
-  mutate(z.income = scale(Median_tot_prsnl_inc_weekly))
-
-
 ```
 
 \vspace{6mm}
@@ -248,21 +242,57 @@ library(psych)
 
 describe(booth.results.2019[variable])
 
-
+ggplot(data = booth.results.2019) +
+  geom_histogram(mapping = aes(x = Median_age_persons), binwidth = 2)
+ggplot(data = booth.results.2019) +
+  geom_histogram(mapping = aes(x = Median_rent_weekly), binwidth = 30)
+ggplot(data = booth.results.2019) +
+  geom_histogram(mapping = aes(x = Median_tot_prsnl_inc_weekly), binwidth = 50)
 
 
 ```
 
+### Analysis of part i
+  According to the data and graph given above, ```
+
+
 ## Regression model
 
-```{r fit the first linear model to county, warning=FALSE, message=FALSE, cache=FALSE}
-library(tidyverse)
+  Use scale function to standardlized the data and fit regression model with possion distribution.
 
-booth.results.2019.Coalition <- booth.results.2019 %>% filter(party == "Coalition")
-booth.results.2019.Greens <- booth.results.2019 %>% filter(party == "Greens")
-booth.results.2019.Labor <- booth.results.2019 %>% filter(party == "Labor")
-booth.results.2019.OneNation <- booth.results.2019 %>% filter(party == "One Nation")
-booth.results.2019.Other <- booth.results.2019 %>% filter(party == "Other")
+```{r fit the first linear model to county, warning=FALSE, message=FALSE, cache=FALSE}
+
+library(tidyverse)
+booth.results.2019.Coalition <- booth.results.2019 %>%
+  mutate(z.age = scale(Median_age_persons)) %>%
+  mutate(z.rent = scale(Median_rent_weekly)) %>% 
+  mutate(z.income = scale(Median_tot_prsnl_inc_weekly)) %>% 
+  filter(party == "Coalition")
+
+booth.results.2019.Greens <- booth.results.2019 %>%
+  mutate(z.age = scale(Median_age_persons)) %>%
+  mutate(z.rent = scale(Median_rent_weekly)) %>% 
+  mutate(z.income = scale(Median_tot_prsnl_inc_weekly)) %>% 
+  filter(party == "Greens")
+
+booth.results.2019.Labor <- booth.results.2019 %>% 
+  mutate(z.age = scale(Median_age_persons)) %>%
+  mutate(z.rent = scale(Median_rent_weekly)) %>% 
+  mutate(z.income = scale(Median_tot_prsnl_inc_weekly)) %>% 
+  filter(party == "Labor")
+
+booth.results.2019.OneNation <- booth.results.2019 %>% 
+  mutate(z.age = scale(Median_age_persons)) %>%
+  mutate(z.rent = scale(Median_rent_weekly)) %>% 
+  mutate(z.income = scale(Median_tot_prsnl_inc_weekly)) %>% 
+  filter(party == "One Nation")
+
+booth.results.2019.Other <- booth.results.2019 %>% 
+  mutate(z.age = scale(Median_age_persons)) %>%
+  mutate(z.rent = scale(Median_rent_weekly)) %>% 
+  mutate(z.income = scale(Median_tot_prsnl_inc_weekly)) %>% 
+  filter(party == "Other")
+
 
 library(arm)
 booth.model.coliation <- glm(prop ~ z.age + z.rent 
@@ -300,7 +330,7 @@ display(booth.model.other)
 ```
 
 
-```{r}
+```{r read shp file and merge with existing data}
 library(sf)
 
 au.shape.1 <- st_read("Data/Australia/Au shapefiles/POA_2016_AUST.shp")
@@ -316,7 +346,7 @@ names(au.shape.2)
 
 head(au.shape.2)
 ```
-```{r}
+```{r filter the data which party is coalition and select the distinct}
 
 booth.results.2019.Coalition <-au.shape.2 %>% 
   filter(party == "Coalition")
@@ -326,11 +356,8 @@ booth.results.2019.Coalition <- dplyr::distinct(booth.results.2019.Coalition)
 booth.results.2019.Coalition
 ```
 
-```{r}
-booth.results.2019.Coalition
-```
 
-```{r plot}
+```{r plot the map}
 library(mapdeck)
 key <- 'pk.eyJ1Ijoia2Vub2tpIiwiYSI6ImNra296Ymp4NDAyY2wzMW1vbzQwazJkazAifQ.H130BX9RduEUtpGndRxefw'
 
@@ -344,31 +371,5 @@ mapdeck(token = key, style = mapdeck_style("light")) %>%
    legend = TRUE)
 ```
 
-
-
-
-### Examining these data 
-
-Once you have loaded and cleaned your data, you will then use these to examine some relationships between the demographics of the communities around polling places and party vote share at each booth. 
-Examine how different spatial patterns interact with with electoral outcomes. Do this using the tools we covered in this morning's lab.
-
-For this you will undertake three main steps:
-
-1. Select what you believe to be appropriate predictors for election results (the variable `prop`, which should be subset by `party`). You should have at least three predictors.
-
-2. Examine your predictors in $R$. Look at their mean, standard deviation, distribution, etc. Do they need to be recoded in any way? Write up your data cleaning decisions in the Markdown file, and include and descriptive analysis you do. 
-
-3. Conduct some descriptive analyses of these data.
-
-Each step in your Markdown file should be clearly labelled. 
-
-
-### Part 2: Regression and interactive maps
-
-The second half of the afternoon lab will be spent conducting further analysis using these data. For this section of the project, you will  also undertake three main steps:
-
-1. Fit regressions to your data. For this you should at least three independent variables from the items you examined this morning. This should be done seperately for each of the party categories in the cleaned AEC electoral data. 
-
-2.	Create an interactive map between at least one of the dependent variables and one independent variable.
-
-3. Write up your key findings.
+### Key findings
+  According to our research:
