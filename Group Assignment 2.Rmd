@@ -247,12 +247,6 @@ ggplot(data = booth.results.2019) +
 
 ```
 
-<<<<<<< HEAD
-```{r}
-library(sf)
-
-au.shape.1 <- st_read("Data/Australia/Au shapefiles/POA_2016_AUST.shp")
-=======
 ### Analysis of part i
   According to the data and graph given above, ```
 
@@ -329,14 +323,8 @@ display(booth.model.other)
 
 
 ```
->>>>>>> f153204b124c955b26a5ecf4b986eed9fdfb7f53
 
 
-<<<<<<< HEAD
-au.shape.2 <- merge(au.shape.1,
-  booth.results.2019 %>%
-    dplyr::select(PollingPlaceID, party, n, missing, prop, state, division, PollingPlaceID, POA_CODE16, Latitude, Longitude, Median_age_persons, Median_tot_prsnl_inc_weekly, Median_rent_weekly),
-=======
 ```{r read shp file and merge with existing data}
 library(sf)
 
@@ -353,15 +341,10 @@ Coalition.independent.table <- dplyr::distinct(Coalition.independent.table)
 ## Merge data by postcode
 Coalition.independent.table <- merge(au.shape.1,
   Coalition.independent.table,
->>>>>>> f153204b124c955b26a5ecf4b986eed9fdfb7f53
   by="POA_CODE16", duplicateGeoms = TRUE)
 
 ####################
 
-<<<<<<< HEAD
-booth.results.2019.Coalition <- au.shape.2 %>%
-  filter(party == "Coalition")
-=======
 # Data for Greens
 Greens.independent.table <- booth.results.2019 %>%
   filter(party == "Greens") %>%
@@ -421,21 +404,8 @@ Other.independent.table <- merge(au.shape.1,
   by="POA_CODE16", duplicateGeoms = TRUE)
 
 ####################
->>>>>>> f153204b124c955b26a5ecf4b986eed9fdfb7f53
 
 
-<<<<<<< HEAD
-mapdeck(token = key, style = mapdeck_style("light")) %>%
- add_polygon(
-    data = booth.results.2019.Coalition, 
-   layer = "polygon_layer", 
-    fill_colour = "prop", 
-  palette = "diverge_hsv", 
-   fill_opacity = .9, 
-   legend = TRUE)
-
-=======
->>>>>>> f153204b124c955b26a5ecf4b986eed9fdfb7f53
 ```
 
 
