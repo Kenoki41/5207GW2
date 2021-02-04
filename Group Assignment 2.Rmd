@@ -4,7 +4,6 @@ author: 'Group 2'
 date: "2021/2/3"
 output: html_document
 ---
-Our team select median_age_persons, median_rent_weekly, median_tot_prsnl_inc_weekly as independent variables and the propbabilty of each party as the dependent variable.We will examine the relationship between the independent variable and dependent variable.It shows the age distribution, personal income and housing costs, respectively of voters. Age,weekly room rent and weekly personal income may affect the election probability results of different parties. 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, messages = FALSE)
@@ -14,6 +13,37 @@ library (tidyverse)
 ```
 
 
+# Introduction and Theory of the Our Assignment
+
+In this assignment, the 3 factors we use are:
+  1. median_age_persons
+  2. median_rent_weekly
+  3. median_tot_prsnl_inc_weekly
+  
+There's the reason:
+  The median is a very meaningful data in population data, and the median reflects the middle level of the data. It divides the data into two parts, one is below the intermediate level and the other is above the intermediate level. 
+  
+  Here we choose the median age. This is the mainstay of the social population. Those below the median age are young people who have voting rights, and those above the median age are elderly people. Considering that every age group may have a biased attitude towards the program of a certain political party, the median age here is a meaningful data.
+  
+  Like the median age, the median weekly rent and total personal income are also meaningful data. Rent and income can analyze the disposable income of people in each region, and people with different incomes will have different attitudes to the programs of different political parties. For example, if a party supports tax increases for high-income groups and tax cuts for low-income groups, people with low disposable incomes will maintain a higher support rate for the party. At the same time, because of the high housing prices and incomes in a certain area, there are many high-income groups in this area. Based on such data, we can study the potential relationship between a certain income group and the support rate of a certain party.
+  
+  
+## Assignment Structure
+
+In the first part:
+  We have explained the reasons for the selection of the three factors. Next we will use the method on the lab to clean up the data. 
+  
+  After this we will use the describe() function to observe the mean and standard deviation of the three factors. And use the ggplot function to view the distribution of the data, which gives us a full understanding of the data we want to operate.
+  
+In the second part:
+  The data will be classified according to political parties, and five tables are generated. After that, the glm() function and the Poisson distribution are used to study the relationship between the independent variable and the dependent variable (support rate).
+  
+  Generate a map based on the variables we selected. For example, the age distribution of people who support the Labor Party, this map is used as the independent variable map. The dependent variable map will be the distribution of the Labor Party’s approval ratings.
+  
+  Finally, we will draw our conclusions based on the generated map.
+
+
+# Part I
 
 ## Data Preparetion
 
@@ -228,7 +258,7 @@ booth.results.2019 <- booth.results.2019 %>%
 ## Finilizing data cleaning and descriptive analysis
 
 
-```{r check data}
+```{r overview the varaibles we selected and plot distribution graph}
 
 variable <- c('Median_age_persons','Median_rent_weekly','Median_tot_prsnl_inc_weekly')
 
@@ -250,16 +280,18 @@ ggplot(data = booth.results.2019) +
 
 ```
 
-### Analysis of part i
+### Analysis of part I
   According to the data and graph given above, the median age of the voters has a mean of 39.61 and a standard deviation of 6.07 the data of median age is little dispersed,min is 18.00 and max is 67.00. the distribution shows a right skew (skewness +0.48) and is slightly flatter than the normal distribution (kurtosis 0.33)
 The mean of voters weekly rent is 325.39 and a standard deviation of 120.13 the weekly rent is dispersed,min is 0 and max is 830. the distribution shows a right skew (skewness +0.53) and is slightly steeper than the normal distribution (kurtosis 1.18)
 The mean of voters weekly personal income is 671.82 and a standard deviation of 178.50 the personal income is large dispersed,min is 185 and max is 2772. the distribution shows a right skew (skewness +1.66) and is steeper than the normal distribution (kurtosis 5.82)
 From the graph1, we can see that the age pf most voters are between 35 to 40 and about 34 is the most. From the graph2, we can see that most voter are rent between 250 to 375 and nearly 375 is the most. Form the graph3, we can see that most voters personal income is between 500 to 750 and nearly 650 is the most.
 
+# Part II 
 
 ## Regression model
 
-  Use scale function to standardized the data and fit regression model with possion distribution.
+  In order to eliminate data differences and improve model accuracy, we decided to use the scale() function to centralize and standardize the data.
+  After that, the data supporting each party will be selected.Using the glm() function to build a generalized linear regression model for the data of each party. Then use the Poisson distribution to explain the relationship between the independent variable and the dependent variable.
 
 ```{r fit the first linear model to county, warning=FALSE, message=FALSE, cache=FALSE}
 
@@ -329,7 +361,18 @@ display(booth.model.other)
 
 
 ```
+## Data Cleaning and Opearting
+  The purpose of the code in this section is to select the appropriate data (zip code and three independent variables) and merge.
+  
+  We have some special findings when operating on dependent variables.(See below)
 
+  Mention: The values of independent variables in the same postal code are the same, so the following discussion only focuses on the dependent variable (support rate).
+  
+  Because we found that there are regions with the same zip code in the data, their latitude and longitude are the same, and their area is the same. So in the final result, these locations will be displayed in the same area. In order to reduce unnecessary troubles and the running speed of the data, we decided to clean up and operate the data of the same geographic location and zip code.
+  
+The theory of our method is:
+  Areas in the same postcode have the same geographic location, but there are different voting locations. So we will calculate the total number of voters in each polling station and add them together as the total number of voters in the same postcode area. Then we create a new column of data as the area with the same geographic location and postcode. The number of people supported by this party accounts for the total number of people in the area. The percentage of voters. Compared with before using this method, this operation reduces the drawing time and improves work efficiency. And keep the data results and generated maps consistent with expectations.
+  
 
 ```{r read shp file and merge with existing data}
 library(sf)
@@ -413,13 +456,96 @@ Other.independent.table <- merge(au.shape.1,
 
 
 ```
+```{r clean and merge for denpendent varaible prop}
+
+#coalition dependent variable table 
+Coalition.dependent.table<-booth.results.2019 %>%
+  filter(party == "Coalition" )%>%
+  mutate(sumOfVotes.per.pollingPlace = n/prop)%>%
+  dplyr::select(POA_CODE16, party, n,  sumOfVotes.per.pollingPlace)%>%
+   group_by(POA_CODE16)%>%
+  summarise(totalVotes.Coalition = sum(n, na.rm = TRUE), totalVotes = sum(sumOfVotes.per.pollingPlace, na.rm = TRUE))%>%
+  mutate(prop.within.samePostCode = (totalVotes.Coalition/totalVotes))
+
+Coalition.dependent.table$prop.within.samePostCode[is.na(Coalition.dependent.table$prop.within.samePostCode)] <- 0
+
+Coalition.dependent.table <-merge(au.shape.1,
+  Coalition.dependent.table,
+  by="POA_CODE16", duplicateGeoms = TRUE)
 
 
+#dependent table for the party-Greens 
+Greens.dependent.table <- booth.results.2019 %>%
+  filter(party == "Greens" )%>%
+  mutate(sumOfVotes.per.pollingPlace = n/prop)%>%
+  dplyr::select(POA_CODE16, party, n,  sumOfVotes.per.pollingPlace)%>%
+   group_by(POA_CODE16)%>%
+  summarise(totalVotes.Greens = sum(n, na.rm = TRUE), totalVotes = sum(sumOfVotes.per.pollingPlace, na.rm = TRUE))%>%
+  mutate(prop.within.samePostCode = (totalVotes.Greens/totalVotes))
 
-```{r plot the map}
+Greens.dependent.table$prop.within.samePostCode[is.na(Greens.dependent.table$prop.within.samePostCode)] <- 0
+
+Greens.dependent.table <-merge(au.shape.1,
+  Greens.dependent.table,
+  by="POA_CODE16", duplicateGeoms = TRUE)
+
+
+#dependent table for the party-Labor
+Labor.dependent.table <- booth.results.2019 %>%
+  filter(party == "Labor" )%>%
+  mutate(sumOfVotes.per.pollingPlace = n/prop)%>%
+  dplyr::select(POA_CODE16, party, n,  sumOfVotes.per.pollingPlace)%>%
+   group_by(POA_CODE16)%>%
+  summarise(totalVotes.Labor = sum(n, na.rm = TRUE), totalVotes = sum(sumOfVotes.per.pollingPlace, na.rm = TRUE))%>%
+  mutate(prop.within.samePostCode = (totalVotes.Labor/totalVotes))
+
+Labor.dependent.table$prop.within.samePostCode[is.na(Labor.dependent.table$prop.within.samePostCode)] <- 0
+
+Labor.dependent.table <-merge(au.shape.1,
+  Labor.dependent.table,
+  by="POA_CODE16", duplicateGeoms = TRUE)
+
+
+#dependent table for the party-OneNation
+OneNation.dependent.table <- booth.results.2019 %>%
+  filter(party == "One Nation" )%>%
+  mutate(sumOfVotes.per.pollingPlace = n/prop)%>%
+  dplyr::select(POA_CODE16, party, n,  sumOfVotes.per.pollingPlace)%>%
+   group_by(POA_CODE16)%>%
+  summarise(totalVotes.OneNation = sum(n, na.rm = TRUE), totalVotes = sum(sumOfVotes.per.pollingPlace, na.rm = TRUE))%>%
+  mutate(prop.within.samePostCode = (totalVotes.OneNation/totalVotes))
+
+OneNation.dependent.table$prop.within.samePostCode[is.na(OneNation.dependent.table$prop.within.samePostCode)] <- 0
+
+OneNation.dependent.table <-merge(au.shape.1,
+  OneNation.dependent.table,
+  by="POA_CODE16", duplicateGeoms = TRUE)
+
+
+#dependent table for the party-Other
+Other.dependent.table <- booth.results.2019 %>%
+  filter(party == "Other" )%>%
+  mutate(sumOfVotes.per.pollingPlace = n/prop)%>%
+  dplyr::select(POA_CODE16, party, n,  sumOfVotes.per.pollingPlace)%>%
+   group_by(POA_CODE16)%>%
+  summarise(totalVotes.Other = sum(n, na.rm = TRUE), totalVotes = sum(sumOfVotes.per.pollingPlace, na.rm = TRUE))%>%
+  mutate(prop.within.samePostCode = (totalVotes.Other/totalVotes))
+
+Other.dependent.table$prop.within.samePostCode[is.na(Other.dependent.table$prop.within.samePostCode)] <- 0
+
+Other.dependent.table <-merge(au.shape.1,
+  Other.dependent.table,
+  by="POA_CODE16", duplicateGeoms = TRUE)
+
+
+```
+
+## Map Plotting
+  In this part we spent 8 maps, 4 maps about the independent variable age classification according to each political party, the distribution in Australia. Other four maps show the distribution of the support rate (dependent variable) of each political party in Australia. We will discuss and write down findings based on these figures.
+
+```{r Coalition/Age}
+
 library(mapdeck)
-
-# Map the Median age in every postcode area of each party
 
 key <- 'pk.eyJ1IjoiZmFuc29uZzk5NiIsImEiOiJja2tvemQ1aWcxa3o3MnBvY3JjeXdmaW1yIn0.1TaYyPHIjaCvbeL6bfJFug'
 
@@ -434,7 +560,7 @@ mapdeck(token = key, style = mapdeck_style("light")) %>%
 
 ```
 
-```{r}
+```{r Greens/Age}
 mapdeck(token = key, style = mapdeck_style("light")) %>%
   add_polygon(
     data = Greens.independent.table, 
@@ -445,7 +571,7 @@ mapdeck(token = key, style = mapdeck_style("light")) %>%
   legend = TRUE)
 ```
 
-```{r}
+```{r One Nation/Age}
 mapdeck(token = key, style = mapdeck_style("light")) %>%
   add_polygon(
     data = OneNation.independent.table, 
@@ -456,7 +582,7 @@ mapdeck(token = key, style = mapdeck_style("light")) %>%
   legend = TRUE)
 ```
 
-```{r}
+```{r labor/Age}
 mapdeck(token = key, style = mapdeck_style("light")) %>%
   add_polygon(
     data = Labor.independent.table, 
@@ -467,28 +593,9 @@ mapdeck(token = key, style = mapdeck_style("light")) %>%
   legend = TRUE)
 ```
 
-## Coalition dependent table 
-```{r}
-
-Coalition.dependent.table<-booth.results.2019 %>%
-  filter(party == "Coalition" )%>%
-  mutate(sumOfVotes.per.pollingPlace = n/prop)%>%
-  dplyr::select(POA_CODE16, party, n,  sumOfVotes.per.pollingPlace)%>%
-   group_by(POA_CODE16)%>%
-  summarise(totalVotes.Coalition = sum(n, na.rm = TRUE), totalVotes = sum(sumOfVotes.per.pollingPlace, na.rm = TRUE))%>%
-  mutate(prop.within.samePostCode = (totalVotes.Coalition/totalVotes))
-
-Coalition.dependent.table$prop.within.samePostCode[is.na(Coalition.dependent.table$prop.within.samePostCode)] <- 0
-
-Coalition.dependent.table <-merge(au.shape.1,
-  Coalition.dependent.table,
-  by="POA_CODE16", duplicateGeoms = TRUE)
- 
-
-```
 
 ## Map dependent variable for the party Coalition
-```{r}
+```{r Coalition/prop}
 
 Coalition.dependent.table <- Coalition.dependent.table %>%
 mutate(prop.within.samePostCode2 = cut(prop.within.samePostCode, breaks=c(quantile(prop.within.samePostCode,
@@ -511,6 +618,64 @@ mapdeck(token = key, style = mapdeck_style("light")) %>%
   legend_options = list(title = "Vote Proportion For Coalition"))  
 
 ```
+#Map dependent variable for the party Greens
+```{r}
+#set label
+Greens.dependent.table <- Greens.dependent.table %>%
+mutate(prop.within.samePostCode2 = cut(prop.within.samePostCode, breaks=c(quantile(prop.within.samePostCode,
+probs = seq(0, 1, by = 0.20))),
+labels=c("0-20","20-40","40-60","60-80","80-100"), include.lowest=TRUE))
+key <- 'pk.eyJ1IjoiZmFuc29uZzk5NiIsImEiOiJja2tvemQ1aWcxa3o3MnBvY3JjeXdmaW1yIn0.1TaYyPHIjaCvbeL6bfJFug'
+mapdeck(token = key, style = mapdeck_style("light")) %>%
+  add_polygon(
+    data = Greens.dependent.table, 
+   layer = "polygon_layer", 
+   fill_colour = "prop.within.samePostCode2", 
+   palette = "diverge_hsv", 
+   fill_opacity = .9, 
+  legend = TRUE,
+  legend_options = list(title = "Vote Proportion For Greens"))  
+```
+
+#Map dependent variable for the party-Labor
+```{r}
+#set label
+Labor.dependent.table <- Labor.dependent.table %>%
+mutate(prop.within.samePostCode2 = cut(prop.within.samePostCode, breaks=c(quantile(prop.within.samePostCode,
+probs = seq(0, 1, by = 0.20))),
+labels=c("0-20","20-40","40-60","60-80","80-100"), include.lowest=TRUE))
+key <- 'pk.eyJ1IjoiZmFuc29uZzk5NiIsImEiOiJja2tvemQ1aWcxa3o3MnBvY3JjeXdmaW1yIn0.1TaYyPHIjaCvbeL6bfJFug'
+mapdeck(token = key, style = mapdeck_style("light")) %>%
+  add_polygon(
+    data = Labor.dependent.table, 
+   layer = "polygon_layer", 
+   fill_colour = "prop.within.samePostCode2", 
+   palette = "diverge_hsv", 
+   fill_opacity = .9, 
+  legend = TRUE,
+  legend_options = list(title = "Vote Proportion For Labor"))  
+```
+
+#Map dependent variable for the party-OneNation
+```{r}
+#set label
+OneNation.dependent.table <- OneNation.dependent.table %>%
+mutate(prop.within.samePostCode2 = cut(prop.within.samePostCode, breaks=c(quantile(prop.within.samePostCode,
+probs = seq(0, 1, by = 0.20))),
+labels=c("0-20","20-40","40-60","60-80","80-100"), include.lowest=TRUE))
+key <- 'pk.eyJ1IjoiZmFuc29uZzk5NiIsImEiOiJja2tvemQ1aWcxa3o3MnBvY3JjeXdmaW1yIn0.1TaYyPHIjaCvbeL6bfJFug'
+mapdeck(token = key, style = mapdeck_style("light")) %>%
+  add_polygon(
+    data = OneNation.dependent.table, 
+   layer = "polygon_layer", 
+   fill_colour = "prop.within.samePostCode2", 
+   palette = "diverge_hsv", 
+   fill_opacity = .9, 
+  legend = TRUE,
+  legend_options = list(title = "Vote Proportion For OneNation"))  
+```
+
+
 
 
 
