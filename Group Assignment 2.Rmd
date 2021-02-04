@@ -6,8 +6,40 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, messages = FALSE)
+
+library (tidyverse)
+
 ```
+
+
+In both labs today, we will be working on an assessable group exercise. You will have a day to finish and upload your work (see the *Group assignment 2* assessment on canvas). 
+
+This task, which counts towards your group work grade, should take you no more than three or four hours to complete (most of which will be time we give you to work on this in the labs). It is worth 10 per cent of your total grade for the unit and will be conducted in your groups for the assessable group projects, which should have approximately four or five members.  You should submit your final written document as a *Markdown* file through a link that will be provided in this module. You do not need to knit this, just submit the RMD. Only one member of your group needs to submit your work. As long as the groups are properly registered on canvas, all members of the group will receive the full grades awarded to the group. 
+
+
+## The assessable group task for today
+
+To help you master the material covered in the sessions today, this group project will require your group to use the methods we cover to examine results from the 2019 Australian federal election, using data from the *Australian Electoral Commission* (AEC).
+
+This task will use the second half of each lab today. In the morning lab you will load, clean and begin examining your data. In the second lab you will fit a regression to your variables and create an interactive map. 
+
+Remember, your group has multiple members. Feel free to allocate different tasks to different members to increase your group productivity. 
+
+
+
+## Part 1: Loading and examining your data
+
+In the morning lab you will load and clean your data, and run some initial descriptive analyses using the methods we showed you in the first half of the session. 
+
+
+### Downloading and analysing spatial data for elections
+
+For this exercise, we will download election results directly from the AEC website into $R$ (rather than download these data manually). I have provided you with instructions below on how to download and clean these data. You can copy and paste my code to save time, but you should familiarise yourself with each piece of syntax so you understand how it works.
+
+To begin, we need to download booth-level electoral data from the 2019 AEC House of Representatives results downloads page. These results are available by state, rather than for the whole country. Instead of writing out code for each state, we create a custom function: 
+
+\vspace{6mm}
 
 ```{r function to download booth data, eval=FALSE}
 
@@ -25,24 +57,31 @@ dl.booth.data <- function(x){
 ```{r function to download booth data2, include=FALSE}
 
 
-
 dl.booth.data <- function(x){
   
   read.csv(paste0('https://results.aec.gov.au/24310/Website/Downloads/HouseStateFirstPrefsByPollingPlaceDownload-24310-', x, '.csv'), skip = 1)
   
-
 }
 
 ```
+\vspace{6mm}
+
+Test this to make sure it works: 
+
+\vspace{6mm}
 
 ```{r test function}
-library(tidyverse)
 
-dl.booth.data('VIC') %>% 
+dl.booth.data('NSW') %>% 
   head()
 
 ```
 
+\vspace{6mm}
+
+If it does, we can then write out code that downloads and binds the polling place results for each state: 
+
+\vspace{6mm}
 
 ```{r load and code 2019 booth data}
 
@@ -52,18 +91,29 @@ booth.results.2019 <- bind_rows(dl.booth.data('NSW'),
                                 dl.booth.data('WA'),
                                 dl.booth.data('SA'),
                                 dl.booth.data('TAS'),
-                                dl.booth.data('ACT')
-                                ,dl.booth.data('NT'))
-booth.results.2019 %>%
-tail()
+                                dl.booth.data('ACT'),
+                                dl.booth.data('NT'))
+
 
 ```
+
+\vspace{6mm}
+
+In its raw form this needs some work, though. For instance, there are a lot of small parties who only contested a handful of seats in the election. You can see this for yourself with the syntax: 
+
+\vspace{6mm}
 
 ```{r check party coding, eval=FALSE}
 
 table(booth.results.2019$PartyNm)
 
 ```
+
+\vspace{6mm}
+
+Therefore we recode the variable `PartyNm`, saving this as `party`: 
+
+\vspace{6mm}
 
 ```{r recode party}
 
@@ -88,6 +138,13 @@ booth.results.2019 <- booth.results.2019 %>%
   
 ```
 
+\vspace{6mm}
+
+As you can see, I also filter out informal votes at this stage. 
+
+We then want to roll up party votes at each polling place (remember we have combined some parties when we recoded, so we want to sum these). We also clean up some of the polls with missing data using `mutate_at`, which allows us to modify all variables at once. 
+
+\vspace{6mm}
 
 ```{r calculate proportions for each polling place, message=FALSE, warning=FALSE}
 
@@ -101,6 +158,12 @@ group_by(PollingPlaceID, party) %>%
 
 
 ```
+
+\vspace{6mm}
+
+Finally, we use `gather` to organise the data: 
+
+\vspace{6mm}
 
 ```{r other stuff}
 
@@ -118,7 +181,16 @@ booth.results.2019 <- booth.results.2019 %>%
             dplyr::select(PollingPlaceID, party, missing)) %>% 
   group_by(PollingPlaceID) %>%
   mutate(prop = n / sum(n))
+
 ```
+
+\vspace{6mm}
+
+You can also see that in the last line of code here I calculated the proportion of votes at each polling place received by each party, which I saved as `prop`. 
+
+We then finish by importing some booth information from the AEC website (including booth information), merging this on to our data frame, and then removing rows with missing data. 
+
+\vspace{6mm}
 
 ```{r booth information, eval=FALSE}
   
@@ -140,15 +212,71 @@ booth.results.2019 <- booth.results.2019 %>%
 
 
 
-```{r read and merge datapacks2, include=FALSE}
+
+```{r booth information2, include=FALSE}
+  
+booth.results.2019 <- booth.results.2019 %>% 
+  merge(read.csv('https://results.aec.gov.au/24310/Website/Downloads/GeneralPollingPlacesDownload-24310.csv', skip = 1) %>%
+            dplyr::rename(state = State, 
+                          division = DivisionNm,
+                          PollingPlace = PollingPlaceNm,
+                          POA_CODE16 = PremisesPostCode) %>% 
+  dplyr::select(state, division, PollingPlaceID, PollingPlace,
+                POA_CODE16, Latitude, Longitude)) %>% 
+  filter(!is.na(Latitude)) %>% 
+  filter(!PollingPlace %in% grep('PREPOLL',
+                                 PollingPlace, 
+                                 value = T)) 
+  
+
+```
+
+
+\vspace{6mm}
+
+
+### Building on this 
+
+We can add to this analysis further. For instance, we can add independent variables to use as predictors of vote choice.
+
+To do this, we start by grabbing some information on the postcodes in which each booth is located. The *Australian Bureau of Statistics* (ABS) provides a wealth of data through its census data packs. These provide data on many topics, taken from the Australian Census (last conducted in 2016) for a range of geographic areas, including postcodes. The datapacks can be accessed ABS [datapacks web page](https://datapacks.censusdata.abs.gov.au/datapacks/). These are saved in the *Data* folder for this lab.
+
+Load these data, and merge them onto our polling place dataset, using the code:
+
+\vspace{6mm}
+
+
+```{r read and merge datapacks, eval=FALSE}
+
 booth.results.2019 <- booth.results.2019 %>% 
   left_join(read.csv('Data/ABS datapacks/2016 Census GCP Postal Areas for AUST/2016Census_G02_AUS_POA.csv') %>% 
-              mutate(POA_CODE16 = as.numeric(gsub('POA', '', POA_CODE_2016))) %>% 
+  mutate(POA_CODE16 = as.numeric(gsub('POA', '', POA_CODE_2016))) %>% 
   dplyr::select(-POA_CODE_2016))
 
-booth.results.2019 %>%
-head(200)
 
+```
+
+
+```{r read and merge datapacks2, include=FALSE}
+
+booth.results.2019 <- booth.results.2019 %>% 
+  left_join(read.csv('Data/ABS datapacks/2016 Census GCP Postal Areas for AUST/2016Census_G02_AUS_POA.csv') %>% 
+  mutate(POA_CODE16 = as.numeric(gsub('POA', '', POA_CODE_2016))) %>% 
+  dplyr::select(-POA_CODE_2016))
+
+
+```
+
+\vspace{6mm}
+
+Your final data frame should look like this:
+
+
+```{r check data}
+
+booth.results.2019
+
+tail(booth.results.2019)
 
 variable <- c('Median_age_persons','Median_rent_weekly','Median_tot_prsnl_inc_weekly')
 head(booth.results.2019[variable])
@@ -162,29 +290,34 @@ describe(booth.results.2019[variable])
 
 
 
-library(ggplot2)
-
-ggplot(booth.results.2019, aes(x=Median_age_persons, y=weight)) + geom_bar(stat="identity")
-```
-
-
-```{r five party}
-Coalition <- booth.results.2019
 
 ```
 
-```{r fitting model}
-
-
-library(arm)
-booth.model.1 <- glm( prop ~  + Median_rent_weekly + Median_tot_fam_inc_weekly + Average_household_size,family=poisson(link = log),data=booth.results.2019)
 
 
 
+### Examining these data 
+
+Once you have loaded and cleaned your data, you will then use these to examine some relationships between the demographics of the communities around polling places and party vote share at each booth. 
+Examine how different spatial patterns interact with with electoral outcomes. Do this using the tools we covered in this morning's lab.
+
+For this you will undertake three main steps:
+
+1. Select what you believe to be appropriate predictors for election results (the variable `prop`, which should be subset by `party`). You should have at least three predictors.
+
+2. Examine your predictors in $R$. Look at their mean, standard deviation, distribution, etc. Do they need to be recoded in any way? Write up your data cleaning decisions in the Markdown file, and include and descriptive analysis you do. 
+
+3. Conduct some descriptive analyses of these data.
+
+Each step in your Markdown file should be clearly labelled. 
 
 
+### Part 2: Regression and interactive maps
 
+The second half of the afternoon lab will be spent conducting further analysis using these data. For this section of the project, you will  also undertake three main steps:
 
+1. Fit regressions to your data. For this you should at least three independent variables from the items you examined this morning. This should be done seperately for each of the party categories in the cleaned AEC electoral data. 
 
-```
+2.	Create an interactive map between at least one of the dependent variables and one independent variable.
 
+3. Write up your key findings.
