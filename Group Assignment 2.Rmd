@@ -249,7 +249,7 @@ Load these data, and merge them onto our polling place dataset, using the code:
 ```{r read and merge datapacks, eval=FALSE}
 
 booth.results.2019 <- booth.results.2019 %>% 
-  left_join(read.csv('Data/ABS datapacks/2016 Census GCP Postal Areas for AUST/2016Census_G02_AUS_POA.csv') %>% 
+  left_join(read.csv('Data/Australia/abs data/2016Census_G02_AUS_POA.csv') %>% 
   mutate(POA_CODE16 = as.numeric(gsub('POA', '', POA_CODE_2016))) %>% 
   dplyr::select(-POA_CODE_2016))
 
@@ -260,7 +260,7 @@ booth.results.2019 <- booth.results.2019 %>%
 ```{r read and merge datapacks2, include=FALSE}
 
 booth.results.2019 <- booth.results.2019 %>% 
-  left_join(read.csv('Data/ABS datapacks/2016 Census GCP Postal Areas for AUST/2016Census_G02_AUS_POA.csv') %>% 
+  left_join(read.csv('Data/Australia/abs data/2016Census_G02_AUS_POA.csv') %>% 
   mutate(POA_CODE16 = as.numeric(gsub('POA', '', POA_CODE_2016))) %>% 
   dplyr::select(-POA_CODE_2016))
 
@@ -293,6 +293,11 @@ describe(booth.results.2019[variable])
 
 ```
 
+```{r}
+a <- st_read("Data/Australia/Au shapefiles/POA_2016_AUST.shp")
+
+
+```
 
 
 
