@@ -1,6 +1,6 @@
 ---
-title: '11'
-author: '500109283'
+title: 'Group Assignment 3'
+author: 'Group 2'
 date: "2021/2/5"
 output: pdf_document
 ---
@@ -9,6 +9,24 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Introduction
+
+  In this group work, we will study the relationship between the new crown epidemic in the United States in the past year and the predictors we selected. First, we will select five predictor variables and explain why we chose these five variables. After that, we will build our theory, how the predictor variables we choose will be related to the dependent variable (COVID-19 case data). The data sets we use are county.data and covid.smooth.data_county.
+  
+  After establishing the theory. We will review the selected variables. We will analyze the mean, median and other data of variables and build their distribution diagrams. After that, we will use the glm() function and build a regression model to fit these predictors. Finally we will write down the main findings.
+  
+# Predictors select and Theory
+  The five factors we used in this assignment is:
+  Economic typology 2015 
+  POP ESTIMATE 2018 
+  POVALL_2018 
+  Unemployment_rate_2018 
+  Density per square mile of land area - Population 
+  
+  
+  
+
+## Load Data
 ```{r load data}
 
 library(tidyverse)
@@ -22,9 +40,13 @@ head(covid.smooth.data_county)
 head(google.mobility)
 head(county.data)
 
-variable <- c('Economic_typology_2015','POP_ESTIMATE_2018','Less.than.a.high.school.diploma.2014.18','High.school.diploma.only.2014.18','POVALL_2018','Unemployment_rate_2018','Density.per.square.mile.of.land.area...Population')
+```
+## descriptive analysis
+```{r descriptive analysis}
+variable <-c('Economic_typology_2015','POP_ESTIMATE_2018','POVALL_2018','Unemployment_rate_2018','Density.per.square.mile.of.land.area...Population')
 
 summary(county.data[variable], na.rm=TRUE)
+describe(county.data[variable])
 ```
 
 ```{r}
@@ -63,6 +85,37 @@ ggplot(data = descDataF) +
   geom_bar(mapping = aes(x = pop_density, fill = pop_density))
 
 
+
+```
+
+```{r descriptive analysis} ##变量名更改后
+
+variable <-c('economic_type','population','poverty','unemployment','pop_density')
+
+summary(county.data[variable], na.rm=TRUE)
+describe(county.data[variable])
+
+```
+
+## fitting model
+```{r fit the first model to county, warning=FALSE, message=FALSE, cache=FALSE}
+
+library(tidyverse)
+county.data <- county.data %>%
+  mutate(z.economic = scale(economic_type)) %>%
+  mutate(z.population = scale(population)) %>% 
+  mutate(z.poverty = scale(poverty)) %>% 
+  mutate(z.unemployment = scale(unemployment))%>%
+  mutate(z.density = scale(pop_density))
+```
+
+```{r fitting model}
+
+library(arm)
+covid19.model <- glm(tot_cases ~ z.economic + z.population 
+                     + z.poverty + z.unemployment + z.density,
+                     family=poisson(link = log), ##泊松或者改成逻辑
+                     data=booth.results.2019.Coalition)
 
 ```
 
