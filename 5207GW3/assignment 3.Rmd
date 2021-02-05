@@ -53,24 +53,29 @@ head(county.data)
 ```
 
 ## descriptive analysis
+
+### Look at some of the descriptive results for your chosen variables, including their distributions as well
+as their relationship to the confirmed cases variable. Plot these.
 ```{r descriptive quantitative analysis}
 library(psych)
 variable <-c('Economic_typology_2015','POP_ESTIMATE_2018','POVALL_2018','Unemployment_rate_2018','Density.per.square.mile.of.land.area...Population')
 
-descDataF <- county.data  %>% 
-  dplyr::rename(economic_type = Economic_typology_2015, 
-                           population = POP_ESTIMATE_2018 ,
-                           poverty = POVALL_2018 ,
-                          unemployment = Unemployment_rate_2018 ,
-                pop_density  = Density.per.square.mile.of.land.area...Population) %>%
-  dplyr::select(economic_type, population, poverty, unemployment,
-                pop_density)
-
 summary(county.data[variable], na.rm=TRUE)
+
 describe(county.data[variable], na.rm = TRUE, fast = TRUE)
 ```
   
 ```{r Distributions}
+
+descDataF <- covid.with.count.data  %>% 
+  dplyr::rename(economic_type = Economic_typology_2015, 
+                           population = POP_ESTIMATE_2018 ,
+                           poverty = POVALL_2018 ,
+                          unemployment = Unemployment_rate_2018 ,
+                pop_density  = Density.per.square.mile.of.land.area...Population,
+                tot_cases = tot_cases) %>%
+  dplyr::select(economic_type, population, poverty, unemployment,
+                pop_density, tot_cases)
 
 bar <- ggplot(data = descDataF) + 
   geom_bar(
@@ -85,17 +90,20 @@ bar <- ggplot(data = descDataF) +
 bar + coord_flip()
 bar + coord_polar()
 
-ggplot(data = descDataF) + 
-  geom_bar(mapping = aes(x = population, fill = population), position = "dodge")
+ggplot(data = descDataF, mapping = aes(x = population, y = tot_cases)) +
+  geom_point()+
+  stat_density2d(aes(alpha = ..density..), geom = "raster", contour = FALSE)
+
+
 
 ggplot(data = descDataF) +
-  geom_bar(mapping = aes(x = poverty, fill = poverty))
+  geom_bar(mapping = aes(x = poverty, colour = poverty))
 
 ggplot(data = descDataF) +
-  geom_bar(mapping = aes(x = unemployment, fill = unemployment))
+  geom_bar(mapping = aes(x = unemployment, fill = tot_cases))
 
 ggplot(data = descDataF) +
-  geom_bar(mapping = aes(x = pop_density, fill = pop_density))
+  geom_bar(mapping = aes(x = pop_density))
 
 
 
