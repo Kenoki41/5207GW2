@@ -67,7 +67,7 @@ descDataF <- county.data  %>%
                 pop_density)
 
 summary(county.data[variable], na.rm=TRUE)
-describe(county.data[variable], na.rm = TRUE, fast = TRUE)
+describe(county.data[variable])
 ```
   
 ```{r Distributions}
@@ -102,13 +102,7 @@ ggplot(data = descDataF) +
 ```
 
 
-```{r descriptive analysis} 
-variable <-c('economic_type','population','poverty','unemployment','pop_density')
 
-summary(county.data[variable], na.rm=TRUE)
-describe(county.data[variable])
-
-```
 
 ## Patterns of 5 selected factors and total case
 
