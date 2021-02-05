@@ -1,0 +1,35 @@
+---
+title: '11'
+author: '500109283'
+date: "2021/2/5"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load data}
+
+library(tidyverse)
+
+
+a <-load("Data/county.data.RData")
+county<- eval(parse(text = a))
+b <-load("Data/covid.RData")
+covid<- eval(parse(text = b))
+c <-load("Data/google.mobility.RData")
+mobility<- eval(parse(text = c))
+
+head(county)
+head(covid)
+head(mobility)
+
+
+variable <- c('Economic_typology_2015','POP_ESTIMATE_2018','Less.than.a.high.school.diploma.2014.18','High.school.diploma.only.2014.18','POVALL_2018','Unemployment_rate_2018','Density.per.square.mile.of.land.area...Population')
+summary(county[variable], na.rm=TRUE)
+```
+
+
+
+
