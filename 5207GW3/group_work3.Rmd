@@ -1,0 +1,130 @@
+---
+title: "group_work3"
+author: "Fan Song"
+date: "2/5/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+```{r}
+# load data
+confirmed.cases.data <- read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv")
+
+
+#independent variables
+
+google.mobility <- read.csv('https://www.gstatic.com/covid19/mobility/Global_Mobility_Report.csv?cachebust=722f3143b586a83f') %>%filter(country_region == 'United States')
+
+
+county.data <- read.csv('https://raw.githubusercontent.com/JieYingWu/COVID-19_US_County-level_Summaries/master/data/counties.csv')
+```
+
+
+# clean data
+```{r}
+library(tidyr)
+library(dplyr)
+library(DataCombine)
+
+confirmed.cases.data2 <- confirmed.cases.data %>%
+dplyr::rename(state = Province_State,county = Admin2) %>%
+dplyr::select(-UID, -iso2, -iso3, -code3, -Lat, -Long_, -Combined_Key, -Country_Region) %>%
+gather(date, confirmed.cases,-state,-county,-FIPS) %>%
+dplyr::mutate(date = gsub('X', '', date),
+              date = as.Date(as.character(date), "%m.%d.%y"),
+              county_state = paste0(county, ', ', state)) %>%
+arrange(county_state, date) %>%
+dplyr::mutate(lag = slide(.,
+              Var = 'confirmed.cases',
+              NewVar = 'new',
+              GroupVar = 'county_state',
+              slideBy = -1)[,'new'], new.cases = confirmed.cases - lag)
+
+
+
+
+```
+```{r}
+
+library(zoo)
+## calculate rolling averages and remove non-states
+covid.smooth.data_county <- confirmed.cases.data2 %>%
+dplyr::group_by(county_state, date) %>%
+dplyr::summarise(new.cases = sum(new.cases)) %>%
+dplyr::group_by(county_state) %>%
+dplyr::mutate(cases_14days = zoo::rollmean(new.cases,k = 14, fill = 0)) %>%
+dplyr::ungroup() %>%
+mutate() %>%
+merge(confirmed.cases.data2 %>%
+dplyr::select(county_state, date, county, state)) %>%
+filter(!state %in% c('American Samoa','Diamond Princess','Grand Princess','Guam','Northern Mariana Islands','Puerto Rico','Virgin Islands'))
+
+#save(covid.smooth.data_county, file = 'Data/Day 5/covid.RData')
+```
+
+```{r}
+names(google.mobility)
+
+
+#sub_region_1 州
+#sub_region_2 县
+#Retail & recreation餐馆、咖啡馆、购物中心、主题公园、博物馆、图书馆和电影院等场所的流动趋势。
+#park 流动趋势的地方，如地方公园，国家公园，公共海滩，码头，狗公园，广场和公共花园。
+```
+
+
+```{r}
+
+
+load("/Users/fansong/Desktop/Master of IT/Summer S1 2021/Day6/group_work3/Untitled.Rdata")
+```
+
+```{r}
+names(covid.smooth.data_county)
+
+
+
+```
+
+# process the table covid.smooth.data_county
+```{r}
+
+
+covid.smooth.data_county$new.cases[is.na(covid.smooth.data_county$new.cases)] <- 0
+
+
+ covid.smooth.data_county.1 <- covid.smooth.data_county%>%
+  group_by(county_state,county, state)%>%
+  summarise(tot_cases = sum(new.cases))
+
+ 
+
+```
+```{r}
+
+```
+
