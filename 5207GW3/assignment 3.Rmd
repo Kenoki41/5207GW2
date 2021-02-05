@@ -27,6 +27,44 @@ variable <- c('Economic_typology_2015','POP_ESTIMATE_2018','Less.than.a.high.sch
 summary(county.data[variable], na.rm=TRUE)
 ```
 
+```{r}
+
+library(psych)
+library(tidyverse)
+
+descData <- c('Economic_typology_2015','POP_ESTIMATE_2018','POVALL_2018', 'Unemployment_rate_2018','Density.per.square.mile.of.land.area...Population')
+descDataF <- county.data %>% select('Economic_typology_2015','POP_ESTIMATE_2018','POVALL_2018', 'Unemployment_rate_2018','Density.per.square.mile.of.land.area...Population')
+
+describe(county.data[descData], na.rm = TRUE, fast = TRUE) #clean后准备替换成新变量
+
+bar <- ggplot(data = descDataF) + 
+  geom_bar(
+    mapping = aes(x = Economic_typology_2015, color = tot_cases), #清洗后用病例数对应观察分布
+    show.legend = FALSE,
+    width = 1,
+    na.rm = TRUE
+  ) + 
+  theme(aspect.ratio = 1) +
+  labs(x = NULL, y = NULL)
+
+bar + coord_flip()
+bar + coord_polar()
+
+ggplot(data = descDataF) + 
+  geom_bar(mapping = aes(x = population, fill = tot_cases), position = "dodge")
+
+ggplot(data = descDataF) +
+  geom_bar(mapping = aes(x = poverty, fill = poverty))
+
+ggplot(data = descDataF) +
+  geom_bar(mapping = aes(x = unemployment, fill = unemployment))
+
+ggplot(data = descDataF) +
+  geom_bar(mapping = aes(x = pop_density, fill = pop_density))
+
+
+
+```
 
 
 
