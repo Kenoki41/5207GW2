@@ -52,9 +52,18 @@ head(county.data)
 
 ```
 ## descriptive analysis
-```{r descriptive analysis}
+```{r descriptive quantitative analysis}
 library(psych)
 variable <-c('Economic_typology_2015','POP_ESTIMATE_2018','POVALL_2018','Unemployment_rate_2018','Density.per.square.mile.of.land.area...Population')
+
+descDataF <- county.data  %>% 
+  dplyr::rename(economic_type = Economic_typology_2015, 
+                           population = POP_ESTIMATE_2018 ,
+                           poverty = POVALL_2018 ,
+                          unemployment = Unemployment_rate_2018 ,
+                pop_density  = Density.per.square.mile.of.land.area...Population) %>%
+  dplyr::select(economic_type, population, poverty, unemployment,
+                pop_density)
 
 summary(county.data[variable], na.rm=TRUE)
 describe(county.data[variable], na.rm = TRUE, fast = TRUE)
@@ -62,13 +71,9 @@ describe(county.data[variable], na.rm = TRUE, fast = TRUE)
   
 ```{r Distributions}
 
-library(psych)
-
-descDataF <- county.data %>% select('Economic_typology_2015','POP_ESTIMATE_2018','POVALL_2018', 'Unemployment_rate_2018','Density.per.square.mile.of.land.area...Population')
-
 bar <- ggplot(data = descDataF) + 
   geom_bar(
-    mapping = aes(x = Economic_typology_2015, color = tot_cases), #清洗后用病例数对应观察分布
+    mapping = aes(x = economic_type, color = economic_type), #清洗后用病例数对应观察分布
     show.legend = FALSE,
     width = 1,
     na.rm = TRUE
@@ -80,7 +85,7 @@ bar + coord_flip()
 bar + coord_polar()
 
 ggplot(data = descDataF) + 
-  geom_bar(mapping = aes(x = population, fill = tot_cases), position = "dodge")
+  geom_bar(mapping = aes(x = population, fill = population), position = "dodge")
 
 ggplot(data = descDataF) +
   geom_bar(mapping = aes(x = poverty, fill = poverty))
