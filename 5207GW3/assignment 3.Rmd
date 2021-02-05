@@ -23,7 +23,17 @@ knitr::opts_chunk$set(echo = TRUE)
   Unemployment_rate_2018 
   Density per square mile of land area - Population 
   
+  Economic typology 2015 tells us a economic type of a specific county, it's based on farming, mining, manufacturing or recreation. We believe that the economic structure plays a crucial role in the spread of COVID-19. Because the economic structure dominated by recreation will temporarily close entertainment venues due to the outbreak of the new crown epidemic. For counties that are dominated by agriculture, because the United States has a very high level of agricultural automation, the labor force is relatively not very dense. As a result, counties dominated by agriculture and counties dominated by entertainment industry may have less spread of COVID-19. As a negative case, labor-intensive industries dominated by manufacturing may be the hardest hit by COVID-19. Because factories are usually indoors and have limited floor space, it is difficult for people to maintain a certain social distance. This might caused the spread of COVID-19.
   
+  By comparing the total population with the total number of COVID-19 confirmed cases, we can find out which states/counties have spread COVID-19 and summarize our findings based on other data.
+  
+  The total poor population is a very meaningful data. During the COVID-19 pandemic, people with high incomes can choose not to work or work from home. But for the poor, their work is mainly labor work, so they cannot work at home. This may also be a factor in the spread of COVID-19.
+  
+  The unemployment rate is a relatively meaningful data. Unemployment means that people do not have stable jobs, and some people choose to go out for odd jobs, which will affect the spread of COVID-19. Others have no money to pay their bills because they are unemployed. According to our speculation, this group of people does not pay much attention to the protection of their own health (such as wearing masks). This may also be a factor leading to the spread of COVID-19.
+  
+  Population density is a very meaningful data for the study of the spread of COVID-19. According to the US Centers for Disease Control and Prevention, most of the spread of the COVID-19 in the United States is family transmission. This means that areas with high population density may have a higher rate of transmission of the COVID, and areas with low population density may have a lower rate of transmission of COVID.
+  
+  To sum up, as our theory, in terms of economic structure, the more labor-intensive economic structure, we speculate that the higher the transmission rate of COVID-19. For the poor, we believe that areas with more poor people have a higher transmission rate of COVID-19. The spread of COVID-19 will also be high in areas with high unemployment. The spread of COVID-19 will be higher in areas with higher population density. Finally, we will compare them based on the total population.
   
 
 ## Load Data
