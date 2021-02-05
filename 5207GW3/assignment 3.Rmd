@@ -22,10 +22,21 @@ head(covid.smooth.data_county)
 head(google.mobility)
 head(county.data)
 
-variable <-c('Economic_typology_2015','POP_ESTIMATE_2018','Less.than.a.high.school.diploma.2014.18','High.school.diploma.only.2014.18','POVALL_2018','Unemployment_rate_2018','Density.per.square.mile.of.land.area...Population')
+```
+```{r descriptive analysis}
+variable <-c('Economic_typology_2015','POP_ESTIMATE_2018','POVALL_2018','Unemployment_rate_2018','Density.per.square.mile.of.land.area...Population')
 
 summary(county.data[variable], na.rm=TRUE)
 describe(county.data[variable])
+```
+
+```{r descriptive analysis 变量名更改}
+
+variable <-c('economic_type','population','poverty','unemployment','pop_density')
+
+summary(county.data[variable], na.rm=TRUE)
+describe(county.data[variable])
+
 ```
 
 
