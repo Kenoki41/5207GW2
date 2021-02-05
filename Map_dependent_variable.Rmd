@@ -1,0 +1,416 @@
+---
+title: "group_work2"
+author: "Fan Song"
+date: "2/3/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#load data
+```{r}
+dl.booth.data <- function(x){
+      read.csv(paste0('https://results.aec.gov.au/24310/Website/Downloads/HouseStateFirstPrefsByPollingPlaceDownload-24310-', x, '.csv'),
+      skip = 1)
+  
+
+}
+```
+
+```{r}
+dl.booth.data('NSW') %>%
+head()
+
+
+```
+```{r}
+
+booth.results.2019 <- bind_rows(dl.booth.data('NSW'),
+dl.booth.data('VIC'),
+dl.booth.data('QLD'),
+dl.booth.data('WA'),
+dl.booth.data('SA'),
+dl.booth.data('TAS'),
+dl.booth.data('ACT'),
+dl.booth.data('NT'))
+```
+
+```{r}
+table(booth.results.2019$PartyNm)
+```
+
+#cleaning data
+```{r}
+
+
+booth.results.2019 <- booth.results.2019 %>%
+mutate(party = dplyr::recode(PartyNm,
+                        "Liberal" = 'Coalition',
+                        "The Greens" = 'Greens',
+                        "Labor" = 'Labor',
+                        "Informal" = 'Informal',
+                        "Pauline Hanson's One Nation" = 'One Nation',
+                        "The Nationals" = 'Coalition',
+                        "The Greens (VIC)" = 'Greens',
+                        "Australian Labor Party" = 'Labor',
+                        "Liberal National Party of Queensland" = 'Coalition',
+                        "The Greens (WA)" = 'Greens',
+                        "National Party" = 'Coalition',
+                        "Australian Labor Party (Northern Territory) Branch" =
+                        'Labor',
+                        "Country Liberals (NT)" = 'Coalition',
+                        .default = 'Other')) %>%
+                        filter(party != 'Informal')
+```
+
+
+#cleaning data
+```{r}
+
+booth.results.2019 <- booth.results.2019 %>%
+    group_by(PollingPlaceID, party) %>%
+    dplyr::summarise(n = sum(OrdinaryVotes)) %>%
+    spread(party, n) %>%
+    mutate_at(vars(-PollingPlaceID),
+    .funs = list(missing = ~ ifelse(is.na(.), 'Yes', 'No'))) %>%
+    mutate_at(vars(-PollingPlaceID), ~ifelse(is.na(.), 0, .))
+```
+
+#cleaning data
+```{r}
+booth.results.2019 <- booth.results.2019 %>%
+    gather(party, n,
+    Coalition, Greens, Labor, `One Nation`, Other) %>%
+    dplyr::select(PollingPlaceID, party, n) %>%
+    merge(booth.results.2019 %>%
+    gather(party, missing,
+    Coalition_missing, Greens_missing,
+    Labor_missing, `One Nation_missing`,
+    Other_missing) %>%
+    mutate(party = gsub('_missing', '', party)) %>%
+    dplyr::select(PollingPlaceID, party, missing)) %>%
+    group_by(PollingPlaceID) %>%
+    mutate(prop = n / sum(n))
+```
+
+#cleaning data
+```{r}
+booth.results.2019 <- booth.results.2019 %>%
+  merge(read.csv('https://results.aec.gov.au/24310/Website/Downloads/GeneralPollingPlacesDownload-24310.csv', skip = 1) %>%
+        dplyr::rename(state = State,
+        division = DivisionNm,
+        PollingPlace = PollingPlaceNm,
+        POA_CODE16 = PremisesPostCode) %>%
+        dplyr::select(state, division, PollingPlaceID, PollingPlace,
+        POA_CODE16, Latitude, Longitude)) %>%
+        filter(!is.na(Latitude)) %>%
+        filter(!PollingPlace %in% grep('PREPOLL',
+        PollingPlace,
+        value = T))
+```
+
+#cleaning data
+```{r}
+booth.results.2019 <- booth.results.2019 %>%
+left_join(read.csv('Data/ABS datapacks/2016 Census GCP Postal Areas for AUST/2016Census_G02_AUS_POA.csv') %>%
+mutate(POA_CODE16 = as.numeric(gsub('POA', '', POA_CODE_2016))) %>%
+dplyr::select(-POA_CODE_2016))
+```
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#load shape file
+```{r}
+library(sf)
+au.shape.1 <- st_read("Data/geospatial data/Australia/Au shapefiles/POA_2016_AUST.shp")
+head(au.shape.1)
+```
+
+-------------------------------------------------------------------------
+
+
+
+
+
+#coalition dependent variable table 
+```{r}
+Coalition.dependent.table<-booth.results.2019 %>%
+  filter(party == "Coalition" )%>%
+  mutate(sumOfVotes.per.pollingPlace = n/prop)%>%
+  dplyr::select(POA_CODE16, party, n,  sumOfVotes.per.pollingPlace)%>%
+   group_by(POA_CODE16)%>%
+  summarise(totalVotes.Coalition = sum(n, na.rm = TRUE), totalVotes = sum(sumOfVotes.per.pollingPlace, na.rm = TRUE))%>%
+  mutate(prop.within.samePostCode = (totalVotes.Coalition/totalVotes))
+
+Coalition.dependent.table$prop.within.samePostCode[is.na(Coalition.dependent.table$prop.within.samePostCode)] <- 0
+
+Coalition.dependent.table <-merge(au.shape.1,
+  Coalition.dependent.table,
+  by="POA_CODE16", duplicateGeoms = TRUE)
+
+  
+  
+ 
+
+```
+
+
+
+#Map dependent variable for the party Coalition
+```{r}
+#set label
+Coalition.dependent.table <- Coalition.dependent.table %>%
+mutate(prop.within.samePostCode2 = cut(prop.within.samePostCode, breaks=c(quantile(prop.within.samePostCode,
+probs = seq(0, 1, by = 0.20))),
+labels=c("0-20","20-40","40-60","60-80","80-100"), include.lowest=TRUE))
+
+
+key <- 'pk.eyJ1IjoiZmFuc29uZzk5NiIsImEiOiJja2tvemQ1aWcxa3o3MnBvY3JjeXdmaW1yIn0.1TaYyPHIjaCvbeL6bfJFug'
+mapdeck(token = key, style = mapdeck_style("light")) %>%
+  add_polygon(
+    data = Coalition.dependent.table, 
+   layer = "polygon_layer", 
+   fill_colour = "prop.within.samePostCode2", 
+   palette = "diverge_hsv", 
+   fill_opacity = .9, 
+  legend = TRUE,
+  legend_options = list(title = "Vote Proportion For Coalition"))  
+
+```
+
+
+
+
+-------------------------------------------------------------------------
+
+
+#dependent table for the party-Greens 
+```{r}
+Greens.dependent.table <- booth.results.2019 %>%
+  filter(party == "Greens" )%>%
+  mutate(sumOfVotes.per.pollingPlace = n/prop)%>%
+  dplyr::select(POA_CODE16, party, n,  sumOfVotes.per.pollingPlace)%>%
+   group_by(POA_CODE16)%>%
+  summarise(totalVotes.Greens = sum(n, na.rm = TRUE), totalVotes = sum(sumOfVotes.per.pollingPlace, na.rm = TRUE))%>%
+  mutate(prop.within.samePostCode = (totalVotes.Greens/totalVotes))
+
+
+Greens.dependent.table$prop.within.samePostCode[is.na(Greens.dependent.table$prop.within.samePostCode)] <- 0
+
+
+
+Greens.dependent.table <-merge(au.shape.1,
+  Greens.dependent.table,
+  by="POA_CODE16", duplicateGeoms = TRUE)
+
+```
+
+
+#Map dependent variable for the party Greens
+```{r}
+#set label
+Greens.dependent.table <- Greens.dependent.table %>%
+mutate(prop.within.samePostCode2 = cut(prop.within.samePostCode, breaks=c(quantile(prop.within.samePostCode,
+probs = seq(0, 1, by = 0.20))),
+labels=c("0-20","20-40","40-60","60-80","80-100"), include.lowest=TRUE))
+
+
+key <- 'pk.eyJ1IjoiZmFuc29uZzk5NiIsImEiOiJja2tvemQ1aWcxa3o3MnBvY3JjeXdmaW1yIn0.1TaYyPHIjaCvbeL6bfJFug'
+mapdeck(token = key, style = mapdeck_style("light")) %>%
+  add_polygon(
+    data = Greens.dependent.table, 
+   layer = "polygon_layer", 
+   fill_colour = "prop.within.samePostCode2", 
+   palette = "diverge_hsv", 
+   fill_opacity = .9, 
+  legend = TRUE,
+  legend_options = list(title = "Vote Proportion For Greens"))  
+
+```
+
+
+
+
+
+
+-------------------------------------------------------------------------
+
+
+#dependent table for the party-Labor
+```{r}
+Labor.dependent.table <- booth.results.2019 %>%
+  filter(party == "Labor" )%>%
+  mutate(sumOfVotes.per.pollingPlace = n/prop)%>%
+  dplyr::select(POA_CODE16, party, n,  sumOfVotes.per.pollingPlace)%>%
+   group_by(POA_CODE16)%>%
+  summarise(totalVotes.Labor = sum(n, na.rm = TRUE), totalVotes = sum(sumOfVotes.per.pollingPlace, na.rm = TRUE))%>%
+  mutate(prop.within.samePostCode = (totalVotes.Labor/totalVotes))
+
+
+Labor.dependent.table$prop.within.samePostCode[is.na(Labor.dependent.table$prop.within.samePostCode)] <- 0
+
+
+
+Labor.dependent.table <-merge(au.shape.1,
+  Labor.dependent.table,
+  by="POA_CODE16", duplicateGeoms = TRUE)
+
+```
+
+
+#Map dependent variable for the party-Labor
+```{r}
+#set label
+Labor.dependent.table <- Labor.dependent.table %>%
+mutate(prop.within.samePostCode2 = cut(prop.within.samePostCode, breaks=c(quantile(prop.within.samePostCode,
+probs = seq(0, 1, by = 0.20))),
+labels=c("0-20","20-40","40-60","60-80","80-100"), include.lowest=TRUE))
+
+
+key <- 'pk.eyJ1IjoiZmFuc29uZzk5NiIsImEiOiJja2tvemQ1aWcxa3o3MnBvY3JjeXdmaW1yIn0.1TaYyPHIjaCvbeL6bfJFug'
+mapdeck(token = key, style = mapdeck_style("light")) %>%
+  add_polygon(
+    data = Labor.dependent.table, 
+   layer = "polygon_layer", 
+   fill_colour = "prop.within.samePostCode2", 
+   palette = "diverge_hsv", 
+   fill_opacity = .9, 
+  legend = TRUE,
+  legend_options = list(title = "Vote Proportion For Labor"))  
+
+```
+
+
+
+
+-------------------------------------------------------------------------
+
+
+
+
+
+#dependent table for the party-OneNation
+```{r}
+OneNation.dependent.table <- booth.results.2019 %>%
+  filter(party == "One Nation" )%>%
+  mutate(sumOfVotes.per.pollingPlace = n/prop)%>%
+  dplyr::select(POA_CODE16, party, n,  sumOfVotes.per.pollingPlace)%>%
+   group_by(POA_CODE16)%>%
+  summarise(totalVotes.OneNation = sum(n, na.rm = TRUE), totalVotes = sum(sumOfVotes.per.pollingPlace, na.rm = TRUE))%>%
+  mutate(prop.within.samePostCode = (totalVotes.OneNation/totalVotes))
+
+
+OneNation.dependent.table$prop.within.samePostCode[is.na(OneNation.dependent.table$prop.within.samePostCode)] <- 0
+
+
+
+OneNation.dependent.table <-merge(au.shape.1,
+  OneNation.dependent.table,
+  by="POA_CODE16", duplicateGeoms = TRUE)
+
+```
+
+
+#Map dependent variable for the party-OneNation
+```{r}
+#set label
+OneNation.dependent.table <- OneNation.dependent.table %>%
+mutate(prop.within.samePostCode2 = cut(prop.within.samePostCode, breaks=c(quantile(prop.within.samePostCode,
+probs = seq(0, 1, by = 0.20))),
+labels=c("0-20","20-40","40-60","60-80","80-100"), include.lowest=TRUE))
+
+
+key <- 'pk.eyJ1IjoiZmFuc29uZzk5NiIsImEiOiJja2tvemQ1aWcxa3o3MnBvY3JjeXdmaW1yIn0.1TaYyPHIjaCvbeL6bfJFug'
+mapdeck(token = key, style = mapdeck_style("light")) %>%
+  add_polygon(
+    data = OneNation.dependent.table, 
+   layer = "polygon_layer", 
+   fill_colour = "prop.within.samePostCode2", 
+   palette = "diverge_hsv", 
+   fill_opacity = .9, 
+  legend = TRUE,
+  legend_options = list(title = "Vote Proportion For OneNation"))  
+
+```
+
+
+-------------------------------------------------------------------------
+
+
+#dependent table for the party-Other
+```{r}
+Other.dependent.table <- booth.results.2019 %>%
+  filter(party == "Other" )%>%
+  mutate(sumOfVotes.per.pollingPlace = n/prop)%>%
+  dplyr::select(POA_CODE16, party, n,  sumOfVotes.per.pollingPlace)%>%
+   group_by(POA_CODE16)%>%
+  summarise(totalVotes.Other = sum(n, na.rm = TRUE), totalVotes = sum(sumOfVotes.per.pollingPlace, na.rm = TRUE))%>%
+  mutate(prop.within.samePostCode = (totalVotes.Other/totalVotes))
+
+
+Other.dependent.table$prop.within.samePostCode[is.na(Other.dependent.table$prop.within.samePostCode)] <- 0
+
+
+
+Other.dependent.table <-merge(au.shape.1,
+  Other.dependent.table,
+  by="POA_CODE16", duplicateGeoms = TRUE)
+
+```
+
+
+#Map dependent variable for the party-Other
+```{r}
+#set label
+Other.dependent.table <- Other.dependent.table %>%
+mutate(prop.within.samePostCode2 = cut(prop.within.samePostCode, breaks=c(quantile(prop.within.samePostCode,
+probs = seq(0, 1, by = 0.20))),
+labels=c("0-20","20-40","40-60","60-80","80-100"), include.lowest=TRUE))
+
+
+key <- 'pk.eyJ1IjoiZmFuc29uZzk5NiIsImEiOiJja2tvemQ1aWcxa3o3MnBvY3JjeXdmaW1yIn0.1TaYyPHIjaCvbeL6bfJFug'
+mapdeck(token = key, style = mapdeck_style("light")) %>%
+  add_polygon(
+    data = Other.dependent.table, 
+   layer = "polygon_layer", 
+   fill_colour = "prop.within.samePostCode2", 
+   palette = "diverge_hsv", 
+   fill_opacity = .9, 
+  legend = TRUE,
+  legend_options = list(title = "Vote Proportion For Other"))  
+
+```
+
+
+
+
+
+
+-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
