@@ -95,7 +95,7 @@ ggplot(data = descDataF) +
 
 ```
 
-```{r descriptive analysis} ##变量名更改后
+```{r descriptive analysis} #变量名更改后
 
 variable <-c('economic_type','population','poverty','unemployment','pop_density')
 
@@ -121,7 +121,7 @@ county.data <- county.data %>%
 library(arm)
 covid19.model <- glm(tot_cases ~ z.economic + z.population 
                      + z.poverty + z.unemployment + z.density,
-                     family=poisson(link = log), ##泊松或者改成逻辑
+                     family=poisson(link = log), #泊松或者改成逻辑
                      data=booth.results.2019.Coalition)
 
 ```
