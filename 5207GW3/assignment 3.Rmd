@@ -1,6 +1,6 @@
 ---
-title: '11'
-author: '500109283'
+title: 'Group Assignment 3'
+author: 'Group 2'
 date: "2021/2/5"
 output: pdf_document
 ---
@@ -9,6 +9,24 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Introduction
+
+  In this group work, we will study the relationship between the new crown epidemic in the United States in the past year and the predictors we selected. First, we will select five predictor variables and explain why we chose these five variables. After that, we will build our theory, how the predictor variables we choose will be related to the dependent variable (COVID-19 case data). The data sets we use are county.data and covid.smooth.data_county.
+  
+  After establishing the theory. We will review the selected variables. We will analyze the mean, median and other data of variables and build their distribution diagrams. After that, we will use the glm() function and build a regression model to fit these predictors. Finally we will write down the main findings.
+  
+# Predictors select and Theory
+  The five factors we used in this assignment is:
+  Economic typology 2015 
+  POP ESTIMATE 2018 
+  POVALL_2018 
+  Unemployment_rate_2018 
+  Density per square mile of land area - Population 
+  
+  
+  
+
+## Load Data
 ```{r load data}
 
 library(tidyverse)
