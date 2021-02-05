@@ -110,13 +110,7 @@ ggplot(data = descDataF) +
 ```
 
 
-```{r descriptive analysis} 
-variable <-c('economic_type','population','poverty','unemployment','pop_density')
 
-summary(county.data[variable], na.rm=TRUE)
-describe(county.data[variable])
-
-```
 
 ## Patterns of 5 selected factors and total case
 
@@ -155,7 +149,7 @@ library(scales)
 ```{r fit the first model to county, warning=FALSE, message=FALSE, cache=FALSE}
 
 library(tidyverse)
-county.data <- county.data %>%
+covid.with.count.data <- covid.with.count.data %>%
   mutate(z.economic = scale(economic_type)) %>%
   mutate(z.population = scale(population)) %>% 
   mutate(z.poverty = scale(poverty)) %>% 
@@ -169,7 +163,7 @@ library(arm)
 covid19.model <- glm(tot_cases ~ z.economic + z.population 
                      + z.poverty + z.unemployment + z.density,
                      family=poisson(link = log), #泊松或者改成逻辑
-                     data=booth.results.2019.Coalition)
+                     data=covid.with.count.data)
 
 ```
 
