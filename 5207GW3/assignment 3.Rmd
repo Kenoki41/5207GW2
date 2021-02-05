@@ -53,6 +53,7 @@ head(county.data)
 ```
 ## descriptive analysis
 ```{r descriptive analysis}
+library(psych)
 variable <-c('Economic_typology_2015','POP_ESTIMATE_2018','POVALL_2018','Unemployment_rate_2018','Density.per.square.mile.of.land.area...Population')
 
 summary(county.data[variable], na.rm=TRUE)
