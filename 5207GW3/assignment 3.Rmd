@@ -51,6 +51,7 @@ head(google.mobility)
 head(county.data)
 
 ```
+
 ## descriptive analysis
 ```{r descriptive quantitative analysis}
 library(psych)
@@ -100,14 +101,47 @@ ggplot(data = descDataF) +
 
 ```
 
-```{r descriptive analysis} ##变量名更改后
 
+```{r descriptive analysis} 
 variable <-c('economic_type','population','poverty','unemployment','pop_density')
 
 summary(county.data[variable], na.rm=TRUE)
 describe(county.data[variable])
 
 ```
+
+## Patterns of 5 selected factors and total case
+
+```{r poverty_v_opiates_mortality, warning=FALSE, echo=FALSE, message=FALSE, fig.cap = "Smoothed mortality rate as a function of proportion of families below the poverty rate and the rate of opiate prescriptions in each county. Each cell represents the mean mortality rate of a group of counties with similar values for poverty and opiate presriptions.\\label{fig:poverty_v_opiates_mortality}", fig.height= 4.5, fig.width=4, fig.align="center"}
+
+
+library(ggplot2)
+library(scales)
+
+  ggplot(county.data,
+       aes(x = poverty / population, y = unemployment / population,
+           z = tot_case / population, alpha = tot_case / population)) +
+  stat_summary_2d(fun = mean, bins = 50) + 
+  scale_fill_gradient2(low = 'grey', 
+                      high = 'dark red', midpoint = 21) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) + 
+  labs(title = 'Poverty and Unemployment-related COVID',
+       y = 'Poverty (%)',
+       x = 'Unemployment rate (%)',
+       fill = 'Poverty and Unemployment-related COVID') + 
+  theme_minimal() +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = 0),
+          strip.background = element_blank(),
+          panel.border = element_blank(),
+          panel.grid = element_blank(),
+          axis.title = element_text(size = 8),
+          legend.position = "bottom",
+          axis.text = element_text(size = 7))
+
+    
+```
+
+
 
 ## fitting model
 ```{r fit the first model to county, warning=FALSE, message=FALSE, cache=FALSE}
@@ -126,7 +160,7 @@ county.data <- county.data %>%
 library(arm)
 covid19.model <- glm(tot_cases ~ z.economic + z.population 
                      + z.poverty + z.unemployment + z.density,
-                     family=poisson(link = log), ##泊松或者改成逻辑
+                     family=poisson(link = log), #泊松或者改成逻辑
                      data=booth.results.2019.Coalition)
 
 ```
