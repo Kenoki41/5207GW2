@@ -14,17 +14,13 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 
 
-a <-load("Data/county.data.RData")
-county<- eval(parse(text = a))
-b <-load("Data/covid.RData")
-covid<- eval(parse(text = b))
-c <-load("Data/google.mobility.RData")
-mobility<- eval(parse(text = c))
+load('Data/covid.RData')
+load("Data/county.data.RData")
+load("Data/google.mobility.RData")
 
-head(county)
-head(covid)
-head(mobility)
-
+head(covid.smooth.data_county)
+head(google.mobility)
+head(county.data)
 
 variable <- c('Economic_typology_2015','POP_ESTIMATE_2018','Less.than.a.high.school.diploma.2014.18','High.school.diploma.only.2014.18','POVALL_2018','Unemployment_rate_2018','Density.per.square.mile.of.land.area...Population')
 summary(county[variable], na.rm=TRUE)
