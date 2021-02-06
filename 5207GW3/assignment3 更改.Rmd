@@ -37,6 +37,7 @@ knitr::opts_chunk$set(echo = TRUE)
   
 
 ```{r}
+library(tidyverse)
 # load data
 confirmed.cases.data <- read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv")
 #independent variables
@@ -48,8 +49,6 @@ load("Data/google.mobility.RData")
 
 # clean data
 ```{r}
-library(tidyr)
-library(dplyr)
 library(DataCombine)
 confirmed.cases.data2 <- confirmed.cases.data %>%
 dplyr::rename(state = Province_State,county = Admin2) %>%
@@ -66,8 +65,8 @@ dplyr::mutate(lag = slide(.,
               slideBy = -1)[,'new'], new.cases = confirmed.cases - lag)
 ```
 ```{r}
-install.packages("zoo")
-library(zoo)
+
+library(zoo) #install.packages("zoo")
 ## calculate rolling averages and remove non-states
 covid.smooth.data_county <- confirmed.cases.data2 %>%
 dplyr::group_by(county_state, date) %>%
@@ -152,43 +151,51 @@ covid.smooth.data_county.1 , by="county_state", duplicateGeoms = TRUE)
 
 ### Look at some of the descriptive results for your chosen variables, including their distributions as well
 as their relationship to the confirmed cases variable. Plot these.
-```{r descriptive quantitative analysis}
+```{r Analysis preparing}
+vars_chosen <- covid.with.count.data  %>% 
+  dplyr::rename(economic_type = Economic_typology_2015, 
+                population    = POP_ESTIMATE_2018 ,
+                poverty       = POVALL_2018 ,
+                unemployment  = Unemployment_rate_2018 ,
+                pop_density   = Density.per.square.mile.of.land.area...Population,
+                tot_cases     = tot_cases) %>%
+  dplyr::select(economic_type, population, poverty, unemployment,
+                pop_density, tot_cases)
+  
+vars_chosen$economic_type <- factor(vars_chosen$economic_type)
+```
+
+```{r descriptive analysis}
 library(psych)
-variable <-c('Economic_typology_2015','POP_ESTIMATE_2018','POVALL_2018','Unemployment_rate_2018','Density.per.square.mile.of.land.area...Population')
-summary(covid.with.count.data[variable], na.rm=TRUE)
-describe(covid.with.count.data[variable])
+variable <-c('economic_type','population','poverty','unemployment','pop_density')
+summary(vars_chosen[variable], na.rm=TRUE)
+psych::describe(vars_chosen[variable])
 ```
   
 ```{r Distributions}
-library(ggplot2)
-covid.with.count.data <- covid.with.count.data  %>% 
-  dplyr::rename(economic_type = Economic_typology_2015, 
-                           population = POP_ESTIMATE_2018 ,
-                           poverty = POVALL_2018 ,
-                          unemployment = Unemployment_rate_2018 ,
-                pop_density  = Density.per.square.mile.of.land.area...Population,
-                tot_cases = tot_cases) %>%
-  dplyr::select(economic_type, population, poverty, unemployment,
-                pop_density, tot_cases)
-bar <- ggplot(data = covid.with.count.data) + 
+
+
+
+eco_g <- ggplot(data = covid.with.count.data) + 
   geom_bar(
-    mapping = aes(x = economic_type, color = economic_type), #清洗后用病例数对应观察分布
+    mapping = aes(x = economic_type, color = factor(economic_type)), #清洗后用病例数对应观察分布
     show.legend = FALSE,
     width = 1,
     na.rm = TRUE
   ) + 
   theme(aspect.ratio = 1) +
   labs(x = NULL, y = NULL)
-bar + coord_flip()
-bar + coord_polar()
-ggplot(data = descDataF, mapping = aes(x = population, y = tot_cases)) +
+eco_g + coord_flip()
+eco_g + coord_polar()
+
+ggplot(data = covid.with.count.data, mapping = aes(x = population, y = tot_cases)) +
   geom_point()+
   stat_density2d(aes(alpha = ..density..), geom = "raster", contour = FALSE)
-ggplot(data = descDataF) +
+ggplot(data = covid.with.count.data) +
   geom_bar(mapping = aes(x = poverty, colour = poverty))
-ggplot(data = descDataF) +
+ggplot(data = covid.with.count.data) +
   geom_bar(mapping = aes(x = unemployment, fill = tot_cases))
-ggplot(data = descDataF) +
+ggplot(data = covid.with.count.data) +
   geom_bar(mapping = aes(x = pop_density))
 ```
 
