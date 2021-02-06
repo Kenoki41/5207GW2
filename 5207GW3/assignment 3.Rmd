@@ -60,9 +60,9 @@ as their relationship to the confirmed cases variable. Plot these.
 library(psych)
 variable <-c('Economic_typology_2015','POP_ESTIMATE_2018','POVALL_2018','Unemployment_rate_2018','Density.per.square.mile.of.land.area...Population')
 
-summary(county.data[variable], na.rm=TRUE)
+summary(covid.with.count.data[variable], na.rm=TRUE)
 
-describe(county.data[variable], na.rm = TRUE, fast = TRUE)
+describe(covid.with.count.data[variable])
 ```
   
 ```{r Distributions}
