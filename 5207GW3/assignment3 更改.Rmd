@@ -112,7 +112,7 @@ covid.smooth.data_county$new.cases[is.na(covid.smooth.data_county$new.cases)] <-
 
 
 
-#Process the data in county.data
+# Process the data in county.data
 ```{r}
 patterns <- c(" County| Parish| city| Borough| City and Borough| Municipality| Census Area| Rico| Parish")
 county.data.1 <- county.data%>%
@@ -138,7 +138,7 @@ county.data.2 <- county.data.1%>%
 
 ```
 
-#merge county with covid
+# merge county with covid
 ```{r}
 covid.with.count.data <- merge(county.data.2,
 covid.smooth.data_county.1 , by="county_state", duplicateGeoms = TRUE)
@@ -166,20 +166,20 @@ vars_chosen <- covid.with.count.data  %>%
 vars_chosen$economic_type <- factor(vars_chosen$economic_type)
 ```
 
-```{r descriptive analysis}
+```{r}
 library(psych)
+describe(vars_chosen)
+```
+
+```{r descriptive analysis}
 variable <-c('economic_type','population','poverty','unemployment','pop_density')
 summary(vars_chosen[variable], na.rm=TRUE)
-psych::describe(vars_chosen[variable])
 ```
   
-```{r Distributions}
-
-
-
+```{r Distributions economic_type}
 eco_g <- ggplot(data = vars_chosen) + 
   geom_bar(
-    mapping = aes(x = economic_type, color = factor(economic_type)), #清洗后用病例数对应观察分布
+    mapping = aes(x = economic_type, fill = factor(economic_type)), #清洗后用病例数对应观察分布
     show.legend = FALSE,
     width = 1,
     na.rm = TRUE
@@ -188,15 +188,33 @@ eco_g <- ggplot(data = vars_chosen) +
   labs(x = NULL, y = NULL)
 eco_g + coord_flip()
 eco_g + coord_polar()
+```
 
-ggplot(data = covid.with.count.data, mapping = aes(x = population, y = tot_cases)) +
-  geom_point()+
-  stat_density2d(aes(alpha = ..density..), geom = "raster", contour = FALSE)
-ggplot(data = covid.with.count.data) +
-  geom_bar(mapping = aes(x = poverty, colour = poverty))
-ggplot(data = covid.with.count.data) +
+
+```{r Distributions population}
+
+
+
+#ggplot(data = vars_chosen, mapping = aes(x = population, y = tot_cases)) +
+#  geom_point()+
+#  stat_density2d(aes(alpha = ..density..), geom = "raster", contour = FALSE)
+```
+
+
+```{r Distributions poverty}
+ggplot(data = vars_chosen) +
+geom_bar(mapping = aes(x = poverty, colour = poverty))
+```
+
+
+```{r Distributions unemployment}
+ggplot(data = vars_chosen) +
   geom_bar(mapping = aes(x = unemployment, fill = tot_cases))
-ggplot(data = covid.with.count.data) +
+```
+
+
+```{r Distributions pop_density}
+ggplot(data = vars_chosen) +
   geom_bar(mapping = aes(x = pop_density))
 ```
 
