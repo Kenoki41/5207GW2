@@ -65,7 +65,10 @@ dplyr::mutate(lag = slide(.,
               slideBy = -1)[,'new'], new.cases = confirmed.cases - lag)
 ```
 ```{r}
+<<<<<<< HEAD
 
+=======
+>>>>>>> 0b1630da4dd8eb6ac469a0657b5b156ffe727acb
 library(zoo) #install.packages("zoo")
 ## calculate rolling averages and remove non-states
 covid.smooth.data_county <- confirmed.cases.data2 %>%
@@ -172,11 +175,34 @@ summary(vars_chosen[variable], na.rm=TRUE)
 psych::describe(vars_chosen[variable])
 ```
   
+<<<<<<< HEAD
 ```{r Distributions}
 
 
 
 eco_g <- ggplot(data = covid.with.count.data) + 
+=======
+```{r Rename columns}
+covid.with.count.data <- covid.with.count.data  %>% 
+  dplyr::rename(economic_type = Economic_typology_2015, 
+                population    = POP_ESTIMATE_2018 ,
+                poverty       = POVALL_2018 ,
+                unemployment  = Unemployment_rate_2018 ,
+                pop_density   = Density.per.square.mile.of.land.area...Population,
+                tot_cases     = tot_cases) %>%
+  dplyr::select(economic_type, population, poverty, unemployment,
+                pop_density, tot_cases)
+
+```
+
+
+
+```{r}
+
+#画图
+#经济类型和病例
+bar <- ggplot(data = covid.with.count.data) + 
+>>>>>>> 0b1630da4dd8eb6ac469a0657b5b156ffe727acb
   geom_bar(
     mapping = aes(x = economic_type, color = factor(economic_type)), #清洗后用病例数对应观察分布
     show.legend = FALSE,
@@ -185,6 +211,7 @@ eco_g <- ggplot(data = covid.with.count.data) +
   ) + 
   theme(aspect.ratio = 1) +
   labs(x = NULL, y = NULL)
+<<<<<<< HEAD
 eco_g + coord_flip()
 eco_g + coord_polar()
 
@@ -195,6 +222,25 @@ ggplot(data = covid.with.count.data) +
   geom_bar(mapping = aes(x = poverty, colour = poverty))
 ggplot(data = covid.with.count.data) +
   geom_bar(mapping = aes(x = unemployment, fill = tot_cases))
+=======
+bar + coord_flip()
+bar + coord_polar()
+
+#人口箱线图
+ggplot(data = covid.with.count.data, mapping = aes(x = population, y = tot_cases)) +
+  geom_point()+
+  stat_density2d(aes(alpha = ..density..), geom = "raster", contour = FALSE)
+
+#贫穷和病例
+ggplot(data = covid.with.count.data) +
+  geom_bar(mapping = aes(x = poverty, colour = poverty))
+
+#失业率和病例
+ggplot(data = covid.with.count.data) +
+  geom_bar(mapping = aes(x = unemployment, fill = tot_cases))
+
+#人口密度和病例
+>>>>>>> 0b1630da4dd8eb6ac469a0657b5b156ffe727acb
 ggplot(data = covid.with.count.data) +
   geom_bar(mapping = aes(x = pop_density))
 ```
