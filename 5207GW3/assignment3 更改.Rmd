@@ -166,16 +166,17 @@ vars_chosen <- covid.with.count.data  %>%
 vars_chosen$economic_type <- factor(vars_chosen$economic_type)
 ```
 
-```{r}
-library(psych)
-describe(vars_chosen)
-```
 
 ```{r descriptive analysis}
 variable <-c('economic_type','population','poverty','unemployment','pop_density')
 summary(vars_chosen[variable], na.rm=TRUE)
 ```
-  
+
+```{r}
+library(psych)
+psych::describe(vars_chosen)
+```
+
 ```{r Distributions economic_type}
 eco_g <- ggplot(data = vars_chosen) + 
   geom_bar(
@@ -186,40 +187,103 @@ eco_g <- ggplot(data = vars_chosen) +
   ) + 
   theme(aspect.ratio = 1) +
   labs(x = NULL, y = NULL)
+
 eco_g + coord_flip()
 eco_g + coord_polar()
 ```
 
 
 ```{r Distributions population}
+#Create CATegorical variable
 
+pop.cate <- vars_chosen %>%
+  mutate(pop.cate.1=dplyr::case_when(population < 5000 ~ '5,000 and less',
+                   population > 5000 & population < 100000 ~
+                   'Between 5,000 & 100,000',
+                   population > 100000 & population < 500000 ~
+                   'Between 100,000 & 500,000',
+                   population >= 500000 ~ '500,000 and over'),
+         pop.cate.1=factor(pop.cate.1, levels = c('5,000 and less',
+                                        'Between 5,000 & 100,000',
+                                        'Between 100,000 & 500,000',
+                                        '500,000 and over'))) %>%
+  group_by(pop.cate.1) %>%
+  tally() %>%
+  ggplot(aes(x = pop.cate.1, y = n, fill = pop.cate.1)) +
+  geom_bar(stat = 'identity') +
+  labs(title = 'City size distribution',
+        x = 'City population size\n',
+        y = 'Number of cities\n') +
+  theme_minimal() +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(face = 'bold', size=12),
+        axis.text.x = element_text(size = 7)) +
+  coord_flip()
 
+pop.cate
 
-#ggplot(data = vars_chosen, mapping = aes(x = population, y = tot_cases)) +
-#  geom_point()+
-#  stat_density2d(aes(alpha = ..density..), geom = "raster", contour = FALSE)
 ```
 
 
 ```{r Distributions poverty}
-ggplot(data = vars_chosen) +
-geom_bar(mapping = aes(x = poverty, colour = poverty))
+pov.cate <- vars_chosen %>%
+  mutate(pov.cate.1=dplyr::case_when(poverty < 500 ~ '5,00 and less',
+                   poverty > 500 & poverty < 15000 ~
+                   '5,00 - 15,000',
+                   poverty > 15000 & poverty < 50000 ~
+                   '15,000 - 50,000',
+                   poverty > 50000 & poverty < 200000 ~
+                   '50,000 - 200,000',
+                   poverty >= 200000 ~ '200,000 and over'),
+         pov.cate.1=factor(pov.cate.1, levels = c('5,00 and less',
+                                        '5,00 - 15,000',
+                                        '15,000 - 50,000',
+                                        '50,000 - 200,000',
+                                        '200,000 and over'))) %>%
+  group_by(pov.cate.1) %>%
+  tally() %>%
+  ggplot(aes(x = pov.cate.1, y = n, fill = pov.cate.1)) +
+  geom_bar(stat = 'identity') +
+  labs(title = 'Poverty distribution',
+        x = 'Poverty population\n',
+        y = 'Number of cities\n') +
+  theme_minimal() +
+  theme(axis.title = element_text(face = 'bold', size=12),
+        axis.text.x = element_text(size = 7))
+
+pov.cate
 ```
 
 
 ```{r Distributions unemployment}
 ggplot(data = vars_chosen) +
-  geom_bar(mapping = aes(x = unemployment, fill = tot_cases))
+  geom_bar(mapping = aes(x = unemployment, fill = unemployment), na.rm = TRUE)
 ```
-
 
 ```{r Distributions pop_density}
-ggplot(data = vars_chosen) +
-  geom_bar(mapping = aes(x = pop_density))
+(pde.cate <- vars_chosen %>%
+  mutate(pde.cate.1=dplyr::case_when(pop_density < 45 ~ '45 and less',
+                   pop_density > 45 & pop_density < 120 ~
+                   '45 - 120',
+                   pop_density > 120 & pop_density < 260 ~
+                   '120 - 260',
+                   pop_density >= 260 ~ '260 and over'),
+         pde.cate.1=factor(pde.cate.1, levels = c('45 and less',
+                                        '45 - 120',
+                                        '120 - 260',
+                                        '260 and over'))) %>%
+  group_by(pde.cate.1) %>%
+  tally() %>%
+  ggplot(aes(x = pde.cate.1, y = n, fill = pde.cate.1)) +
+  geom_bar(stat = 'identity') +
+  labs(title = 'City population density distribution',
+        x = 'Density\n',
+        y = 'Number of cities\n') +
+  theme(axis.title = element_text(face = 'bold', size=12),
+        axis.text.x = element_text(size = 7)) +
+  coord_flip())
 ```
-
-
-
 
 ## Patterns of 5 selected factors and total case
 
