@@ -37,7 +37,7 @@ knitr::opts_chunk$set(echo = TRUE)
   
 
 
-# Process the table covid.smooth.data_county
+## Process the table covid.smooth.data_county
 ```{r}
 library(tidyverse)
 
@@ -54,61 +54,42 @@ covid.smooth.data_county.1 <- covid.smooth.data_county %>%
 
 
 
-# Process the data in county.data
+## Process the data in county.data
 ```{r}
 
 #remove suffix
 patterns <- c(" County| Parish| Borough| City and Borough| Municipality| Census Area| Parish")
+
 county.data.1 <- county.data%>%
   mutate(county_name = gsub(patterns, "", Area_Name))%>%
   dplyr::select(FIPS,  Area_Name, county_name, State, Economic_typology_2015, POP_ESTIMATE_2018, POVALL_2018, Unemployment_rate_2018, Density.per.square.mile.of.land.area...Population)
 
-
-
-
 #remove the city suffix except some specific cities
 for(i in 1:nrow(county.data.1)){
-  
   if(county.data.1[i,]$county_name != "Baltimore city" & county.data.1[i,]$county_name != "St. Louis city" & county.data.1[i,]$county_name != "Fairfax city" & county.data.1[i,]$county_name != "Franklin city" & county.data.1[i,]$county_name != "Richmond city" & county.data.1[i,]$county_name != "Roanoke city"){
     county.data.1[i,]$county_name = gsub(" city", "", county.data.1[i,]$county_name)
   }
-  
-  
 }
 
-
 county.data.1$county_name = gsub(" city", " City", county.data.1$county_name)
-
 
 #add state suffix
 state_name <- ""
 for(i in 1:nrow(county.data.1)){
-  
   if(county.data.1[i,]$FIPS != 0 & county.data.1[i,]$FIPS%%1000 == 0){
     state_name <- county.data.1[i,]$Area_Name
-    
-    
   }
   else{
     county.data.1$county_state[i] = paste0(county.data.1[i,]$county_name, ", ", state_name)
   }
-  
-  
-  
-  
- 
-  
 }
-
 
 county.data.2 <- county.data.1%>%
   dplyr::select(FIPS, county_state, Economic_typology_2015, POP_ESTIMATE_2018, POVALL_2018, Unemployment_rate_2018, Density.per.square.mile.of.land.area...Population)
 
-
-
 ```
 
-# merge county with covid
+## merge county with covid
 ```{r}
 covid.with.count.data <- merge(county.data.2,
 covid.smooth.data_county.1 , by="county_state", duplicateGeoms = TRUE)
@@ -117,9 +98,9 @@ covid.smooth.data_county.1 , by="county_state", duplicateGeoms = TRUE)
 
 
 
-## descriptive analysis
+# Descriptive Analysis
 
-### Look at some of the descriptive results for your chosen variables, including their distributions as well
+## Look at some of the descriptive results for your chosen variables, including their distributions as well
 as their relationship to the confirmed cases variable. Plot these.
 ```{r Analysis}
 #提取5个自变量，1个因变量，避免污染原数据
@@ -144,7 +125,8 @@ summary(vars_chosen[variable], na.rm=TRUE)
 library(psych)
 psych::describe(vars_chosen[variable])
 ```
-## Descriptive Analysis
+
+## Analysis
   According to the data and graph given above, the mean of economic in 2015 is 1.81 and a standard deviation of 1.82 and the data is little dispersed, min is 0 and max is 5. The distribution shows a right skew (skewness +0.45) and is slightly flatter than the normal distribution (kurtosis -1.30)
 The mean of population is 104123.67 and a standard deviation of 33581.38 the weekly rent is largely dispersed; the min is 88 and max is 10105518. The distribution shows a right skew (skewness +13.56) and is steeper than the normal distribution (kurtosis 306.71).The mean of poverty is 13316.06 and a standard deviation of 45611.42 the personal income is large dispersed; min is 5 and max is 1409155. the distribution shows a serious right skew (skewness +14.71) and is steeper than the normal distribution (kurtosis 340.39).The mean of unemployment rate is 4.13 and a standard deviation of 1.50 the personal income is little dispersed; min is 1.3 and max is 19.9. the distribution shows a right skew (skewness +2.26) and is steeper than the normal distribution (kurtosis 12.46).The mean of density is 259.43 and a standard deviation of 1725.48 the personal income is large dispersed, min is 0 and max is 69468.4. the distribution shows a serious right skew (skewness +26.88) and is steeper than the normal distribution (kurtosis 930.04)
 
@@ -163,6 +145,7 @@ tot.margins <- vars_chosen %>%
                                                               '2,111 - 5,445',
                                                            '5,445 and over')))
 ```
+
 Since economic type is not a continuous variable, we have to factor it out. It is found that there are more than 1,200 counties with zero industry type, accounting for the vast majority. We can see more intuitively from the second chart that the number of counties with economic type 0 is dominant. So we're going to focus on those counties. The third picture is a count chart. We can see that from the size of the red dot that a large proportion of counties with economy type 0 had more than 5,445 cases.
 
 ```{r Distributions economic_type}
@@ -198,6 +181,7 @@ ggplot(data = tot.margins) +
 
 
 ```
+
 In the first bar chart, counties with populations between 5,000 and 100,000 make up the majority. The study of such counties will have many positive implications. 
 
 In the second graph. We can intuitively see that cities with a total of more than 5,445 cases are not very closely related to counties with populations between 5,000 and 100,000. Most of them have cases below 5,445. The larger counties of more than 100,000, which are the blue dots, mostly had more than 5,445 cases.
@@ -236,6 +220,7 @@ ggplot(data = tot.margins) +
   coord_flip()
 
 ```
+
 In the first picture, we know that most areas have between 500 and 15,000 poor people.
 In the second graph, as we can see in the rightest column, when the number of cases exceeds 5,445, the number of poor people is fairly higher.
 
@@ -279,6 +264,7 @@ ggplot(data = tot.margins) +
 
 
 ```
+
 Unemployment in most counties is less than 5%.
 But in the second graph, from this we can learn that the two are highly likely to have a positive correlation. The average unemployment rate in counties with cases between 864 and 2111 was significantly higher than that in counties with cases less than 864.
 
@@ -296,6 +282,7 @@ ggplot(data = tot.margins, mapping = aes(x = tot.cat, y = unemployment)) +
         y = 'Unemployment Rate\n') +
   coord_flip()
 ```
+
 As can be seen from the first bar chart, the areas with a population density of less than 121 account for the vast majority.
 In the second chart, we can see a clear upward trend in the far right row of points, which indicates that the greater the population density, the more counties have more than 5,445 cases.
 
@@ -338,6 +325,7 @@ ggplot(data = tot.margins) +
 ## Patterns of 5 selected factors and total case
 
 ```{r poverty_v_opiates_mortality, warning=FALSE, echo=FALSE, message=FALSE, fig.cap = "Smoothed mortality rate as a function of proportion of families below the poverty rate and the rate of opiate prescriptions in each county. Each cell represents the mean mortality rate of a group of counties with similar values for poverty and opiate presriptions.\\label{fig:poverty_v_opiates_mortality}", fig.height= 4.5, fig.width=4, fig.align="center"}
+
 library(ggplot2)
 library(scales)
   ggplot(vars_chosen,
@@ -363,8 +351,7 @@ library(scales)
 ```
 
 
-
-## fitting model
+## Fitting Regression Model
 ```{r fit the first model to county, warning=FALSE, message=FALSE, cache=FALSE}
 library(tidyverse)
 covid.with.count.data.1 <- vars_chosen %>%
@@ -379,7 +366,7 @@ covid.with.count.data.1 <- vars_chosen %>%
 library(arm)
 covid19.model <- glm(tot_cases ~ z.economic + z.population 
                      + z.poverty + z.unemployment + z.density,
-                     family=poisson(link = log), #泊松或者改成逻辑
+                     family=poisson(link = log), 
                      data=covid.with.count.data.1)
 
 display(covid19.model)
@@ -390,12 +377,23 @@ plot(covid19.model)
 
 ```
 
-## Model analysis
+## Model Analysis
   The fitting poisson model examines the coefficient of the independent (economic ，population, poverty, unemployment rate and density)and dependent variable(total covid-19 case in different county in US). In the Poisson regression, the dependent variable is modeled in the logarithmic form of the conditional mean ln(λ). The poisson model is (tot_cases ~ z.economic + z.population + z.poverty + z.unemployment + z.density)
+  
   The intercept is 8.58, the regression parameter for z. economic is -0.21, indicating that holding the other predictor variables constant, economic increase will result in a corresponding decrease in the log mean of the number of covid-19 total case probability by 0.21.The the regression parameter for z. population is 0.71, a population increase will result in a corresponding increase in the log mean of the number of covid-19 total case by 0.71.The regression parameter for z. population is -0.51, increase in poverty will result in a corresponding decrease in the log mean of the number of covid-19 total case by 0.51.
 The regression parameter for z. unemployment is -0.07, increase in personal income will result in a corresponding decrease in the log mean of the number of covid-19 total case by 0.07.
+  
   The regression parameter for z. density is 0.08, increase in personal income will result in a corresponding increase in the log mean of the number covid-19 total case by 0.08.
 
+
+# Interactive Map
+```{r interactive map}
+
+
+
+```
+
+# Key Findings
 
 
 
