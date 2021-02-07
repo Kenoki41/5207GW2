@@ -41,7 +41,6 @@ library(tidyverse)
 # load data
 confirmed.cases.data <- read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv")
 #independent variables
-google.mobility <- read.csv('https://www.gstatic.com/covid19/mobility/Global_Mobility_Report.csv?cachebust=722f3143b586a83f') %>% filter(country_region == 'United States')
 county.data <- read.csv('https://raw.githubusercontent.com/JieYingWu/COVID-19_US_County-level_Summaries/master/data/counties.csv')
 load("Data/google.mobility.RData")
 ```
