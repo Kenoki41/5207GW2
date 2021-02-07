@@ -202,7 +202,7 @@ summary(vars_chosen[variable], na.rm=TRUE)
 
 ```{r}
 library(psych)
-psych::describe(vars_chosen)
+describe(vars_chosen)
 ```
 
 ```{r convert The total cases into a categorical variable}
@@ -389,7 +389,7 @@ library(scales)
 ## fitting model
 ```{r fit the first model to county, warning=FALSE, message=FALSE, cache=FALSE}
 library(tidyverse)
-covid.with.count.data.1 <- covid.with.count.data %>%
+covid.with.count.data.1 <- vars_chosen %>%
   mutate(z.economic = scale(economic_type)) %>%
   mutate(z.population = scale(population)) %>% 
   mutate(z.poverty = scale(poverty)) %>% 
