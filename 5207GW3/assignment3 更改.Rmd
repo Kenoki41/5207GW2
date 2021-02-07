@@ -387,10 +387,59 @@ The regression parameter for z. unemployment is -0.07, increase in personal inco
 
 
 # Interactive Map
-```{r interactive map}
+
+#link with shape files
+```{r link us data with shape files, message=FALSE, warning=FALSE}
+library(sf)
+
+us.shape.1 <- st_read("SHP/cb_2016_us_county_20m.shp")
 
 
 
+fip.concordance <- read.csv("Data/fips concordance.csv")
+
+
+
+us.shape.2 <- us.shape.1 %>% 
+  merge(fip.concordance %>%
+          mutate(STATEFP =  ifelse(Numeric.code >= 0 & Numeric.code <= 9, 
+                             paste0(0 , Numeric.code), Numeric.code)) %>%
+          dplyr::rename(state = Alpha.code))
+
+
+
+
+
+
+#process the table for mapping
+us.shape.3 <- us.shape.2 %>%
+  mutate(county_state = paste0(NAME, ", ", Name))
+
+covid.with.county.map <- merge(us.shape.3,covid.with.count.data%>%
+                                 dplyr::select(county_state, tot_cases, Economic_typology_2015, POP_ESTIMATE_2018, POVALL_2018, Unemployment_rate_2018, Density.per.square.mile.of.land.area...Population), 
+                               by="county_state")
+
+
+
+
+#map the dependent variables
+library(mapdeck)
+
+
+covid.with.county.map <- covid.with.county.map %>%
+  mutate(tot_cases2 = cut(tot_cases, breaks=c(0, 100, 1000, 10000, 100000, 1000000),labels=c("0-100","100-1000","1000-10000","10000-100000","100000-1000000"), include.lowest=TRUE))
+
+
+key <- 'pk.eyJ1IjoiZmFuc29uZzk5NiIsImEiOiJja2tvemQ1aWcxa3o3MnBvY3JjeXdmaW1yIn0.1TaYyPHIjaCvbeL6bfJFug'
+mapdeck(token = key, style = mapdeck_style("light")) %>%
+  add_polygon(
+    data = covid.with.county.map, 
+    layer = "polygon_layer", 
+    fill_colour = "tot_cases2", 
+    palette = "diverge_hsv", 
+    fill_opacity = .9, 
+    legend = TRUE,
+    legend_options = list(title = "Number of confirmed cases"))  
 ```
 
 # Key Findings
