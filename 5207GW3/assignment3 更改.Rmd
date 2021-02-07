@@ -114,14 +114,35 @@ covid.smooth.data_county$new.cases[is.na(covid.smooth.data_county$new.cases)] <-
 
 # Process the data in county.data
 ```{r}
-patterns <- c(" County| Parish| city| Borough| City and Borough| Municipality| Census Area| Rico| Parish")
+
+#remove suffix
+patterns <- c(" County| Parish| Borough| City and Borough| Municipality| Census Area| Parish")
 county.data.1 <- county.data%>%
   mutate(county_name = gsub(patterns, "", Area_Name))%>%
   dplyr::select(FIPS,  Area_Name, county_name, State, Economic_typology_2015, POP_ESTIMATE_2018, POVALL_2018, Unemployment_rate_2018, Density.per.square.mile.of.land.area...Population)
+
+
+
+
+#remove the city suffix except some specific cities
+for(i in 1:nrow(county.data.1)){
+  
+  if(county.data.1[i,]$county_name != "Baltimore city" & county.data.1[i,]$county_name != "St. Louis city" & county.data.1[i,]$county_name != "Fairfax city" & county.data.1[i,]$county_name != "Franklin city" & county.data.1[i,]$county_name != "Richmond city" & county.data.1[i,]$county_name != "Roanoke city"){
+    county.data.1[i,]$county_name = gsub(" city", "", county.data.1[i,]$county_name)
+  }
+  
+  
+}
+
+
+county.data.1$county_name = gsub(" city", " City", county.data.1$county_name)
+
+
+#add state suffix
 state_name <- ""
 for(i in 1:nrow(county.data.1)){
   
-  if(county.data.1[i,]$FIPS != 0 && county.data.1[i,]$FIPS%%1000 == 0){
+  if(county.data.1[i,]$FIPS != 0 & county.data.1[i,]$FIPS%%1000 == 0){
     state_name <- county.data.1[i,]$Area_Name
     
     
@@ -130,11 +151,18 @@ for(i in 1:nrow(county.data.1)){
     county.data.1$county_state[i] = paste0(county.data.1[i,]$county_name, ", ", state_name)
   }
   
+  
+  
+  
  
   
 }
+
+
 county.data.2 <- county.data.1%>%
   dplyr::select(FIPS, county_state, Economic_typology_2015, POP_ESTIMATE_2018, POVALL_2018, Unemployment_rate_2018, Density.per.square.mile.of.land.area...Population)
+
+
 
 ```
 
