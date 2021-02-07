@@ -360,7 +360,7 @@ ggplot(data = tot.margins) +
 ```{r poverty_v_opiates_mortality, warning=FALSE, echo=FALSE, message=FALSE, fig.cap = "Smoothed mortality rate as a function of proportion of families below the poverty rate and the rate of opiate prescriptions in each county. Each cell represents the mean mortality rate of a group of counties with similar values for poverty and opiate presriptions.\\label{fig:poverty_v_opiates_mortality}", fig.height= 4.5, fig.width=4, fig.align="center"}
 library(ggplot2)
 library(scales)
-  ggplot(covid.with.count.data,
+  ggplot(vars_chosen,
        aes(x = poverty / population, y = unemployment / population,
            z = tot_cases / population, alpha = tot_cases / population)) +
   stat_summary_2d(fun = mean, bins = 50) + 
