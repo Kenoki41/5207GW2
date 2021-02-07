@@ -441,6 +441,21 @@ mapdeck(token = key, style = mapdeck_style("light")) %>%
     legend = TRUE,
     legend_options = list(title = "Number of confirmed cases"))  
 ```
+```{r}
+library(mapdeck)
+
+
+key <- 'pk.eyJ1IjoiZmFuc29uZzk5NiIsImEiOiJja2tvemQ1aWcxa3o3MnBvY3JjeXdmaW1yIn0.1TaYyPHIjaCvbeL6bfJFug'
+mapdeck(token = key, style = mapdeck_style("light")) %>%
+  add_polygon(
+    data = covid.with.county.map, 
+    layer = "polygon_layer", 
+    fill_colour = "Economic_typology_2015", 
+    palette = "diverge_hsv", 
+    fill_opacity = .9, 
+    legend = TRUE,
+    legend_options = list(title = "Number of confirmed cases")) 
+```
 
 # Key Findings
 
