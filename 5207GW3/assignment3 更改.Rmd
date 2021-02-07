@@ -36,75 +36,18 @@ knitr::opts_chunk$set(echo = TRUE)
   To sum up, as our theory, in terms of economic structure, the more labor-intensive economic structure, we speculate that the higher the transmission rate of COVID-19. For the poor, we believe that areas with more poor people have a higher transmission rate of COVID-19. The spread of COVID-19 will also be high in areas with high unemployment. The spread of COVID-19 will be higher in areas with higher population density. Finally, we will compare them based on the total population.
   
 
+
+# Process the table covid.smooth.data_county
 ```{r}
 library(tidyverse)
-# load data
-confirmed.cases.data <- read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv")
-#independent variables
-county.data <- read.csv('https://raw.githubusercontent.com/JieYingWu/COVID-19_US_County-level_Summaries/master/data/counties.csv')
-load("Data/google.mobility.RData")
-```
-
-
-# clean data
-```{r}
-library(DataCombine)
-confirmed.cases.data2 <- confirmed.cases.data %>%
-dplyr::rename(state = Province_State,county = Admin2) %>%
-dplyr::select(-UID, -iso2, -iso3, -code3, -Lat, -Long_, -Combined_Key, -Country_Region) %>%
-gather(date, confirmed.cases,-state,-county,-FIPS) %>%
-dplyr::mutate(date = gsub('X', '', date),
-              date = as.Date(as.character(date), "%m.%d.%y"),
-              county_state = paste0(county, ', ', state)) %>%
-arrange(county_state, date) %>%
-dplyr::mutate(lag = slide(.,
-              Var = 'confirmed.cases',
-              NewVar = 'new',
-              GroupVar = 'county_state',
-              slideBy = -1)[,'new'], new.cases = confirmed.cases - lag)
-```
-```{r}
-
-library(zoo) #install.packages("zoo")
-## calculate rolling averages and remove non-states
-covid.smooth.data_county <- confirmed.cases.data2 %>%
-dplyr::group_by(county_state, date) %>%
-dplyr::summarise(new.cases = sum(new.cases)) %>%
-dplyr::group_by(county_state) %>%
-dplyr::mutate(cases_14days = zoo::rollmean(new.cases,k = 14, fill = 0)) %>%
-dplyr::ungroup() %>%
-mutate() %>%
-merge(confirmed.cases.data2 %>%
-dplyr::select(county_state, date, county, state)) %>%
-filter(!state %in% c('American Samoa','Diamond Princess','Grand Princess','Guam','Northern Mariana Islands','Puerto Rico','Virgin Islands'))
-#save(covid.smooth.data_county, file = 'Data/Day 5/covid.RData')
-```
-
-```{r}
-names(google.mobility)
-#sub_region_1 州
-#sub_region_2 县
-#Retail & recreation餐馆、咖啡馆、购物中心、主题公园、博物馆、图书馆和电影院等场所的流动趋势。
-#park 流动趋势的地方，如地方公园，国家公园，公共海滩，码头，狗公园，广场和公共花园。
-```
-
-
-```{r loading data}
 
 load('Data/covid.RData')
 load("Data/county.data.RData")
-load("Data/google.mobility.RData")
 
-```
-
-
-
-# process the table covid.smooth.data_county
-```{r}
-load("Data/provided_data.Rdata")
 covid.smooth.data_county$new.cases[is.na(covid.smooth.data_county$new.cases)] <- 0
- covid.smooth.data_county.1 <- covid.smooth.data_county%>%
-  group_by(county_state,county, state)%>%
+
+covid.smooth.data_county.1 <- covid.smooth.data_county %>%
+  group_by(county_state,county, state) %>%
   summarise(tot_cases = sum(new.cases))
  
 ```
@@ -190,7 +133,7 @@ vars_chosen <- covid.with.count.data  %>%
   dplyr::select(economic_type, population, poverty, unemployment,
                 pop_density, tot_cases)
   
-vars_chosen$economic_type <- factor(vars_chosen$economic_type)
+
 ```
 
 
@@ -201,8 +144,8 @@ summary(vars_chosen[variable], na.rm=TRUE)
 library(psych)
 describe(vars_chosen[variable])
 ```
-## descriptive analysis
-According to the data and graph given above, the mean of economic in 2015 is 1.81 and a standard deviation of 1.82 and the data is little dispersed, min is 0 and max is 5. The distribution shows a right skew (skewness +0.45) and is slightly flatter than the normal distribution (kurtosis -1.30)
+## Descriptive Analysis
+  According to the data and graph given above, the mean of economic in 2015 is 1.81 and a standard deviation of 1.82 and the data is little dispersed, min is 0 and max is 5. The distribution shows a right skew (skewness +0.45) and is slightly flatter than the normal distribution (kurtosis -1.30)
 The mean of population is 104123.67 and a standard deviation of 33581.38 the weekly rent is largely dispersed; the min is 88 and max is 10105518. The distribution shows a right skew (skewness +13.56) and is steeper than the normal distribution (kurtosis 306.71).The mean of poverty is 13316.06 and a standard deviation of 45611.42 the personal income is large dispersed; min is 5 and max is 1409155. the distribution shows a serious right skew (skewness +14.71) and is steeper than the normal distribution (kurtosis 340.39).The mean of unemployment rate is 4.13 and a standard deviation of 1.50 the personal income is little dispersed; min is 1.3 and max is 19.9. the distribution shows a right skew (skewness +2.26) and is steeper than the normal distribution (kurtosis 12.46).The mean of density is 259.43 and a standard deviation of 1725.48 the personal income is large dispersed, min is 0 and max is 69468.4. the distribution shows a serious right skew (skewness +26.88) and is steeper than the normal distribution (kurtosis 930.04)
 
 
@@ -414,10 +357,10 @@ plot(covid19.model)
 ```
 
 ## Model analysis
-The fitting poisson model examines the coefficient of the independent (economic ，population, poverty, unemployment rate and density)and dependent variable(total covid-19 case in different county in US). In the Poisson regression, the dependent variable is modeled in the logarithmic form of the conditional mean ln(λ). The poisson model is (tot_cases ~ z.economic + z.population + z.poverty + z.unemployment + z.density)
-The intercept is 8.58, the regression parameter for z. economic is -0.21, indicating that holding the other predictor variables constant, economic increase will result in a corresponding decrease in the log mean of the number of covid-19 total case probability by 0.21.The the regression parameter for z. population is 0.71, a population increase will result in a corresponding increase in the log mean of the number of covid-19 total case by 0.71.The regression parameter for z. population is -0.51, increase in poverty will result in a corresponding decrease in the log mean of the number of covid-19 total case by 0.51.
+  The fitting poisson model examines the coefficient of the independent (economic ，population, poverty, unemployment rate and density)and dependent variable(total covid-19 case in different county in US). In the Poisson regression, the dependent variable is modeled in the logarithmic form of the conditional mean ln(λ). The poisson model is (tot_cases ~ z.economic + z.population + z.poverty + z.unemployment + z.density)
+  The intercept is 8.58, the regression parameter for z. economic is -0.21, indicating that holding the other predictor variables constant, economic increase will result in a corresponding decrease in the log mean of the number of covid-19 total case probability by 0.21.The the regression parameter for z. population is 0.71, a population increase will result in a corresponding increase in the log mean of the number of covid-19 total case by 0.71.The regression parameter for z. population is -0.51, increase in poverty will result in a corresponding decrease in the log mean of the number of covid-19 total case by 0.51.
 The regression parameter for z. unemployment is -0.07, increase in personal income will result in a corresponding decrease in the log mean of the number of covid-19 total case by 0.07.
-The regression parameter for z. density is 0.08, increase in personal income will result in a corresponding increase in the log mean of the number covid-19 total case by 0.08.
+  The regression parameter for z. density is 0.08, increase in personal income will result in a corresponding increase in the log mean of the number covid-19 total case by 0.08.
 
 
 
