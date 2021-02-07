@@ -427,7 +427,7 @@ library(mapdeck)
 
 
 covid.with.county.map <- covid.with.county.map %>%
-  mutate(tot_cases2 = cut(tot_cases, breaks=c(0, 100, 1000, 10000, 100000, 1000000),labels=c("0-100","100-1000","1000-10000","10000-100000","100000-1000000"), include.lowest=TRUE))
+  mutate(tot_cases2 = cut(tot_cases, breaks=c(0, 100, 1000, 10000, 50000, 2000000),labels=c("0-100","100-1000","1000-10000","10000-50000","50000+"), include.lowest=TRUE))
 
 
 key <- 'pk.eyJ1IjoiZmFuc29uZzk5NiIsImEiOiJja2tvemQ1aWcxa3o3MnBvY3JjeXdmaW1yIn0.1TaYyPHIjaCvbeL6bfJFug'
