@@ -198,11 +198,9 @@ vars_chosen$economic_type <- factor(vars_chosen$economic_type)
 ```{r descriptive analysis}
 variable <-c('economic_type','population','poverty','unemployment','pop_density')
 summary(vars_chosen[variable], na.rm=TRUE)
-```
 
-```{r}
 library(psych)
-describe(vars_chosen)
+describe(vars_chosen[variable])
 ```
 
 ```{r convert The total cases into a categorical variable}
