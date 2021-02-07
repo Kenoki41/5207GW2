@@ -376,6 +376,10 @@ covid19.model <- glm(tot_cases ~ z.economic + z.population
                      family=poisson(link = log), #泊松或者改成逻辑
                      data=covid.with.count.data.1)
 
+display(covid19.model)
+summary(covid19.model)
+plot(covid19.model)
+
 
 
 
