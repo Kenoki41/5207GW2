@@ -142,7 +142,7 @@ variable <-c('economic_type','population','poverty','unemployment','pop_density'
 summary(vars_chosen[variable], na.rm=TRUE)
 
 library(psych)
-describe(vars_chosen[variable])
+psych::describe(vars_chosen[variable])
 ```
 ## Descriptive Analysis
   According to the data and graph given above, the mean of economic in 2015 is 1.81 and a standard deviation of 1.82 and the data is little dispersed, min is 0 and max is 5. The distribution shows a right skew (skewness +0.45) and is slightly flatter than the normal distribution (kurtosis -1.30)
@@ -150,6 +150,7 @@ The mean of population is 104123.67 and a standard deviation of 33581.38 the wee
 
 
 ```{r convert The total cases into a categorical variable}
+library(tidyverse)
 tot.margins <- vars_chosen %>%
                 mutate(tot.cat = dplyr::case_when(tot_cases < 864 ~ '864 and less',
                                             tot_cases >= 864 & tot_cases < 2111 ~
@@ -162,6 +163,7 @@ tot.margins <- vars_chosen %>%
                                                               '2,111 - 5,445',
                                                            '5,445 and over')))
 ```
+Since economic type is not a continuous variable, we have to factor it out. It is found that there are more than 1,200 counties with zero industry type, accounting for the vast majority. We can see more intuitively from the second chart that the number of counties with economic type 0 is dominant. So we're going to focus on those counties. The third picture is a count chart. We can see that from the size of the red dot that a large proportion of counties with economy type 0 had more than 5,445 cases.
 
 ```{r Distributions economic_type}
 eco_g <- ggplot(data = vars_chosen) + 
@@ -174,20 +176,31 @@ eco_g <- ggplot(data = vars_chosen) +
   theme(aspect.ratio = 1) +
   labs(x = NULL, y = NULL)
 
-eco_g + coord_flip()
-eco_g + coord_polar()
+eco_g + 
+  labs(title = 'Economic_type Bar Plot ',
+        x = 'economic_type\n') +
+  coord_flip()
+eco_g + 
+  labs(title = 'Economic_type Polar Plot ',
+        x = 'economic_type\n') +
+  coord_polar()
 
 #ggplot(data = vars_chosen, mapping = aes(x = tot_cases)) +
 #  geom_freqpoly(mapping = aes(color = economic_type), binwidth = 1000000)
 
 
 ggplot(data = tot.margins) +
-  geom_count(mapping = aes(x = economic_type, y = tot.cat,color  = economic_type), na.rm = TRUE)
+  geom_count(mapping = aes(x = economic_type, y = tot.cat,color  = economic_type), na.rm = TRUE) +
+  labs(title = 'Total Cases - Economic_type Counts Plot ',
+        x = 'Economic_type\n',
+        y = 'Total Cases\n')
 
 
 
 ```
+In the first bar chart, counties with populations between 5,000 and 100,000 make up the majority. The study of such counties will have many positive implications. 
 
+In the second graph. We can intuitively see that cities with a total of more than 5,445 cases are not very closely related to counties with populations between 5,000 and 100,000. Most of them have cases below 5,445. The larger counties of more than 100,000, which are the blue dots, mostly had more than 5,445 cases.
 
 ```{r Distributions population}
 #Create CATegorical variable
@@ -217,12 +230,20 @@ ggplot(data = tot.margins) +
 
 ggplot(data = tot.margins) +
   geom_count(mapping = aes(x = pop.cate.1, y = tot.cat, color  = pop.cate.1))+
+  labs(title = 'Total Cases - City population Counts Plot ',
+        x = 'City population\n',
+        y = 'Total Cases\n') +
   coord_flip()
 
 ```
-
+In the first picture, we know that most areas have between 500 and 15,000 poor people.
+In the second graph, as we can see in the rightest column, when the number of cases exceeds 5,445, the number of poor people is fairly higher.
 
 ```{r Distributions poverty}
+library(Hmisc)
+# 插补均值
+tot.margins$poverty <- impute(tot.margins$poverty,mean)
+
 (tot.margins <- tot.margins %>%
   mutate(pov.cate.1=dplyr::case_when(poverty < 500 ~ '5,00 and less',
                    poverty >= 500 & poverty < 15000 ~
@@ -251,26 +272,36 @@ ggplot(data = tot.margins) +
 
 ggplot(data = tot.margins) +
   geom_count(mapping = aes(x = pov.cate.1, y = tot.cat))+
+  labs(title = 'Total Cases - Poverty Counts Plot ',
+        x = 'Poverty\n',
+        y = 'Total Cases\n') +
   coord_flip()
 
 
 ```
-
+Unemployment in most counties is less than 5%.
+But in the second graph, from this we can learn that the two are highly likely to have a positive correlation. The average unemployment rate in counties with cases between 864 and 2111 was significantly higher than that in counties with cases less than 864.
 
 ```{r Distributions unemployment}
 ggplot(data = tot.margins) +
   geom_bar(mapping = aes(x = unemployment, fill = unemployment), na.rm = TRUE) +
+  labs(title = 'Distributions of Unemployment ',
+        x = 'Unemployment Rate\n') +
   theme_minimal()
 
 ggplot(data = tot.margins, mapping = aes(x = tot.cat, y = unemployment)) +
   geom_boxplot(na.rm = TRUE) +
+  labs(title = 'Total Cases - Unemployment Rate Box Plot ',
+        x = 'Total Cases\n',
+        y = 'Unemployment Rate\n') +
   coord_flip()
 ```
+As can be seen from the first bar chart, the areas with a population density of less than 121 account for the vast majority.
+In the second chart, we can see a clear upward trend in the far right row of points, which indicates that the greater the population density, the more counties have more than 5,445 cases.
 
 ```{r Distributions pop_density}
-library(Hmisc)
 # 插补均值
-tot.margins$pop_density <- impute(tot.margins$pop_density,mean)
+tot.margins$pop_density <- Hmisc::impute(tot.margins$pop_density,mean)
 
 (tot.margins <- tot.margins %>%
     mutate(pde.cate.1=dplyr::case_when(pop_density < 44 ~ '44 and less',
@@ -298,6 +329,9 @@ tot.margins$pop_density <- impute(tot.margins$pop_density,mean)
 
 ggplot(data = tot.margins) +
   geom_count(mapping = aes(x = pde.cate.1, y = tot.cat, color  = pde.cate.1))+
+  labs(title = 'Total Cases - Population Density Counts Plot ',
+        x = 'Density\n',
+        y = 'Total Cases\n') +
   coord_flip()
 ```
 
