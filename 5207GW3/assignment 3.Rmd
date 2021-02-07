@@ -1,0 +1,171 @@
+---
+title: 'Group Assignment 3'
+author: 'Group 2'
+date: "2021/2/5"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+  In this group work, we will study the relationship between the new crown epidemic in the United States in the past year and the predictors we selected. First, we will select five predictor variables and explain why we chose these five variables. After that, we will build our theory, how the predictor variables we choose will be related to the dependent variable (COVID-19 case data). The data sets we use are county.data and covid.smooth.data_county.
+  
+  After establishing the theory. We will review the selected variables. We will analyze the mean, median and other data of variables and build their distribution diagrams. After that, we will use the glm() function and build a regression model to fit these predictors. Finally we will write down the main findings.
+  
+# Predictors select and Theory
+  The five factors we used in this assignment is:
+  Economic typology 2015 
+  POP ESTIMATE 2018 
+  POVALL_2018 
+  Unemployment_rate_2018 
+  Density per square mile of land area - Population 
+  
+  Economic typology 2015 tells us a economic type of a specific county, it's based on farming, mining, manufacturing or recreation. We believe that the economic structure plays a crucial role in the spread of COVID-19. Because the economic structure dominated by recreation will temporarily close entertainment venues due to the outbreak of the new crown epidemic. For counties that are dominated by agriculture, because the United States has a very high level of agricultural automation, the labor force is relatively not very dense. As a result, counties dominated by agriculture and counties dominated by entertainment industry may have less spread of COVID-19. As a negative case, labor-intensive industries dominated by manufacturing may be the hardest hit by COVID-19. Because factories are usually indoors and have limited floor space, it is difficult for people to maintain a certain social distance. This might caused the spread of COVID-19.
+  
+  By comparing the total population with the total number of COVID-19 confirmed cases, we can find out which states/counties have spread COVID-19 and summarize our findings based on other data.
+  
+  The total poor population is a very meaningful data. During the COVID-19 pandemic, people with high incomes can choose not to work or work from home. But for the poor, their work is mainly labor work, so they cannot work at home. This may also be a factor in the spread of COVID-19.
+  
+  The unemployment rate is a relatively meaningful data. Unemployment means that people do not have stable jobs, and some people choose to go out for odd jobs, which will affect the spread of COVID-19. Others have no money to pay their bills because they are unemployed. According to our speculation, this group of people does not pay much attention to the protection of their own health (such as wearing masks). This may also be a factor leading to the spread of COVID-19.
+  
+  Population density is a very meaningful data for the study of the spread of COVID-19. According to the US Centers for Disease Control and Prevention, most of the spread of the COVID-19 in the United States is family transmission. This means that areas with high population density may have a higher rate of transmission of the COVID, and areas with low population density may have a lower rate of transmission of COVID.
+  
+  To sum up, as our theory, in terms of economic structure, the more labor-intensive economic structure, we speculate that the higher the transmission rate of COVID-19. For the poor, we believe that areas with more poor people have a higher transmission rate of COVID-19. The spread of COVID-19 will also be high in areas with high unemployment. The spread of COVID-19 will be higher in areas with higher population density. Finally, we will compare them based on the total population.
+  
+
+## Load Data
+```{r load data}
+
+library(tidyverse)
+
+
+load('Data/covid.RData')
+load("Data/county.data.RData")
+load("Data/google.mobility.RData")
+
+head(covid.smooth.data_county)
+head(google.mobility)
+head(county.data)
+
+```
+
+## descriptive analysis
+
+### Look at some of the descriptive results for your chosen variables, including their distributions as well
+as their relationship to the confirmed cases variable. Plot these.
+```{r descriptive quantitative analysis}
+library(psych)
+variable <-c('Economic_typology_2015','POP_ESTIMATE_2018','POVALL_2018','Unemployment_rate_2018','Density.per.square.mile.of.land.area...Population')
+
+summary(covid.with.count.data[variable], na.rm=TRUE)
+
+describe(covid.with.count.data[variable])
+```
+  
+```{r Distributions}
+
+descDataF <- covid.with.count.data  %>% 
+  dplyr::rename(economic_type = Economic_typology_2015, 
+                           population = POP_ESTIMATE_2018 ,
+                           poverty = POVALL_2018 ,
+                          unemployment = Unemployment_rate_2018 ,
+                pop_density  = Density.per.square.mile.of.land.area...Population,
+                tot_cases = tot_cases) %>%
+  dplyr::select(economic_type, population, poverty, unemployment,
+                pop_density, tot_cases)
+
+bar <- ggplot(data = descDataF) + 
+  geom_bar(
+    mapping = aes(x = economic_type, color = economic_type), #清洗后用病例数对应观察分布
+    show.legend = FALSE,
+    width = 1,
+    na.rm = TRUE
+  ) + 
+  theme(aspect.ratio = 1) +
+  labs(x = NULL, y = NULL)
+
+bar + coord_flip()
+bar + coord_polar()
+
+ggplot(data = descDataF, mapping = aes(x = population, y = tot_cases)) +
+  geom_point()+
+  stat_density2d(aes(alpha = ..density..), geom = "raster", contour = FALSE)
+
+
+
+ggplot(data = descDataF) +
+  geom_bar(mapping = aes(x = poverty, colour = poverty))
+
+ggplot(data = descDataF) +
+  geom_bar(mapping = aes(x = unemployment, fill = tot_cases))
+
+ggplot(data = descDataF) +
+  geom_bar(mapping = aes(x = pop_density))
+
+
+
+```
+
+
+
+
+## Patterns of 5 selected factors and total case
+
+```{r poverty_v_opiates_mortality, warning=FALSE, echo=FALSE, message=FALSE, fig.cap = "Smoothed mortality rate as a function of proportion of families below the poverty rate and the rate of opiate prescriptions in each county. Each cell represents the mean mortality rate of a group of counties with similar values for poverty and opiate presriptions.\\label{fig:poverty_v_opiates_mortality}", fig.height= 4.5, fig.width=4, fig.align="center"}
+
+
+library(ggplot2)
+library(scales)
+
+  ggplot(county.data,
+       aes(x = poverty / population, y = unemployment / population,
+           z = tot_case / population, alpha = tot_case / population)) +
+  stat_summary_2d(fun = mean, bins = 50) + 
+  scale_fill_gradient2(low = 'grey', 
+                      high = 'dark red', midpoint = 21) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) + 
+  labs(title = 'Poverty and Unemployment-related COVID',
+       y = 'Poverty (%)',
+       x = 'Unemployment rate (%)',
+       fill = 'Poverty and Unemployment-related COVID') + 
+  theme_minimal() +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = 0),
+          strip.background = element_blank(),
+          panel.border = element_blank(),
+          panel.grid = element_blank(),
+          axis.title = element_text(size = 8),
+          legend.position = "bottom",
+          axis.text = element_text(size = 7))
+
+    
+```
+
+
+
+## fitting model
+```{r fit the first model to county, warning=FALSE, message=FALSE, cache=FALSE}
+
+library(tidyverse)
+covid.with.count.data <- covid.with.count.data %>%
+  mutate(z.economic = scale(economic_type)) %>%
+  mutate(z.population = scale(population)) %>% 
+  mutate(z.poverty = scale(poverty)) %>% 
+  mutate(z.unemployment = scale(unemployment))%>%
+  mutate(z.density = scale(pop_density))
+```
+
+```{r fitting model}
+
+library(arm)
+covid19.model <- glm(tot_cases ~ z.economic + z.population 
+                     + z.poverty + z.unemployment + z.density,
+                     family=poisson(link = log), #泊松或者改成逻辑
+                     data=covid.with.count.data)
+
+```
+
+
+
