@@ -419,7 +419,8 @@ covid.with.county.map <- merge(us.shape.3,covid.with.count.data%>%
                                  dplyr::select(county_state, tot_cases, Economic_typology_2015, POP_ESTIMATE_2018, POVALL_2018, Unemployment_rate_2018, Density.per.square.mile.of.land.area...Population), 
                                by="county_state")
 
-
+covid.with.county.map <-covid.with.county.map %>%
+  mutate(pov_rate = POVALL_2018/POP_ESTIMATE_2018)
 ```
 
 ## Independent map
