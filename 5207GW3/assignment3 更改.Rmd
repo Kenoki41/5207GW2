@@ -420,7 +420,8 @@ covid.with.county.map <- merge(us.shape.3,covid.with.count.data%>%
                                by="county_state")
 
 covid.with.county.map <-covid.with.county.map %>%
-  mutate(pov_rate = POVALL_2018/POP_ESTIMATE_2018)
+  mutate(pov_rate = POVALL_2018/POP_ESTIMATE_2018,
+         unemploy_rate = Unemployment_rate_2018/POP_ESTIMATE_2018)
 ```
 
 ## Independent map
@@ -449,7 +450,7 @@ mapdeck(token = key, style = mapdeck_style("light")) %>%
   add_polygon(
     data = covid.with.county.map, 
     layer = "polygon_layer", 
-    fill_colour = "POVALL_2018", 
+    fill_colour = "pov_rate", 
     palette = "diverge_hsv", 
     fill_opacity = .9, 
     legend = TRUE,
