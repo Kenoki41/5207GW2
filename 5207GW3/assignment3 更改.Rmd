@@ -424,7 +424,7 @@ covid.with.county.map <-covid.with.county.map %>%
          unemploy_rate = Unemployment_rate_2018/POP_ESTIMATE_2018)
 ```
 
-## Independent map
+## Independent variable map
 ```{r map of economic type}
 library(mapdeck)
 
@@ -440,9 +440,15 @@ mapdeck(token = key, style = mapdeck_style("light")) %>%
     legend_options = list(title = "Economic Type"))
 
 ```
+Deep blue for Non-specialized
+Light blue for Farming
+Blue white for Mining
+Red white for Maufacturing
+Light red for Federal/State Government
+Deep red for Recreation
 
-## pop
-```{r map of economic type}
+## Independent variable map
+```{r map of Poverty rate}
 library(mapdeck)
 
 key <- 'pk.eyJ1IjoiZmFuc29uZzk5NiIsImEiOiJja2tvemQ1aWcxa3o3MnBvY3JjeXdmaW1yIn0.1TaYyPHIjaCvbeL6bfJFug'
@@ -454,7 +460,7 @@ mapdeck(token = key, style = mapdeck_style("light")) %>%
     palette = "diverge_hsv", 
     fill_opacity = .9, 
     legend = TRUE,
-    legend_options = list(title = "Poverty"))
+    legend_options = list(title = "Poverty Rate"))
 
 ```
 
@@ -481,8 +487,12 @@ mapdeck(token = key, style = mapdeck_style("light")) %>%
 
 # Key Findings
 
+  According to the conclusions obtained by the general linear model, it is not difficult to find that the size of the population is directly proportional to the infection rate of COVID. The higher the population and density, the higher the COVID infection rate. This is consistent with our guess in the previous theory. 
 
+  According to the general linear model and interactive map of the unemployment rate, we can find that unlike our theory, the unemployment rate is not directly related to the COVID infection rate. The overall unemployment rate in the United States has remained at a relatively stable level, and unemployment rates in each region are similar. So when generating the interactive map, we found that the map is basically blue. As a result, the interactive map is not put into this code.
+  
+  The general linear regression and interactive map of the economic structure exceeded our expectations, and he perfectly proved our theory. For industries with very high levels of automation, such as agriculture and mining. Due to the low population density of these industries, these areas have very low infection rates. For densely populated industries, such as manufacturing and recreation, the infection rate of COVID is relatively high due to the concentration of the population. Of course, this is also related to county population density.
 
-
-
-
+  An interesting finding is that in the general linear regression model, we found that the poverty rate and the COVID infection rate are inversely proportional. But in the interactive map, we found that the poverty rate in the United States is very evenly distributed and the number of poor people is very small, which exceeds our expectations. This creates great difficulties for our analysis, because there may be only relationships between data and no causality. So our conclusion is that the poverty rate cannot explain the COVID infection rate.
+  
+  To sum up, the COVID infection rate is related to the density of the population, and the economic types of different regions also confirm this view. The higher the population density, the larger the total population, and the more concentrated industries in the economic structure, the higher the COVID infection rate. Conversely, states and counties with low population densities and dominated by agriculture and mining, such as South Dakota and North Dakota, have lower COVID infection rates. COVID-19 infection rate is not directly related to the unemployment rate and poverty rate.
