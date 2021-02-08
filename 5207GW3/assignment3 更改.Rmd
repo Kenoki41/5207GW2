@@ -435,11 +435,26 @@ mapdeck(token = key, style = mapdeck_style("light")) %>%
     palette = "diverge_hsv", 
     fill_opacity = .9, 
     legend = TRUE,
-    legend_options = list(title = "Number of confirmed cases"))
+    legend_options = list(title = "Economic Type"))
 
 ```
 
+## pop
+```{r map of economic type}
+library(mapdeck)
 
+key <- 'pk.eyJ1IjoiZmFuc29uZzk5NiIsImEiOiJja2tvemQ1aWcxa3o3MnBvY3JjeXdmaW1yIn0.1TaYyPHIjaCvbeL6bfJFug'
+mapdeck(token = key, style = mapdeck_style("light")) %>%
+  add_polygon(
+    data = covid.with.county.map, 
+    layer = "polygon_layer", 
+    fill_colour = "POVALL_2018", 
+    palette = "diverge_hsv", 
+    fill_opacity = .9, 
+    legend = TRUE,
+    legend_options = list(title = "Poverty"))
+
+```
 
 ```{r map of dependent varaible -- tot_cases}
 #map the dependent variables
